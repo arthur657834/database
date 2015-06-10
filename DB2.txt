@@ -1,0 +1,24 @@
+数据类型:
+smallint 
+integer 
+bigint 
+decimal(p,s),dec(p,s),numeric(p,s)
+real,double,double precision,float
+varchar(n),character varying(n),long varchar,clob(n[K|M|G])
+graphic(n),vargraphic(n),long vargraphic(n),dbclob(n[K|M|G])
+date,time.timestamp
+
+函数
+avg
+max
+min
+count
+count_big
+stddev
+sum
+variance
+
+restrict
+noaction
+cascade
+set null

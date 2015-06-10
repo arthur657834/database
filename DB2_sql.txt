@@ -1,0 +1,128 @@
+create table apm_db2_sheet (apm_smallint  smallint,apm_integer  integer,apm_bigint  bigint,apm_decimal decimal(p,s),apm_dec,dec(p,s),apm_numeric numeric(p,s),apm_real real,apm_double double,apm_double_precision double precision,apm_float float,apm_varchar  varchar(n),apm_character_varying character varying(n),apm_long_varchar long varchar,apm_clob clob(n[K|M|G]),apm_graphic graphic(n),apm_vargraphic vargraphic(n),apm_long_vargraphic long vargraphic(n),apm_dbclob dbclob(n[K|M|G]),apm_date date,apm_time time,apm_timestamp timestamp)
+
+
+create table apm_smallint (apm_smallint  smallint );
+insert into apm_smallint  values(32767);
+insert into apm_smallint  values(null);
+select apm_smallint  from apm_smallint ;
+drop table apm_smallint ;
+
+create table apm_integer (apm_integer  integer );
+insert into apm_integer  values();
+insert into apm_integer  values(null);
+select apm_integer  from apm_integer ;
+drop table apm_integer ;
+
+create table apm_bigint (apm_bigint  bigint );
+insert into apm_bigint  values();
+insert into apm_bigint  values(null);
+select apm_bigint  from apm_bigint ;
+drop table apm_bigint ;
+
+create table apm_decimal (apm_decimal decimal(p,s));
+insert into apm_decimal values();
+insert into apm_decimal values(null);
+select apm_decimal from apm_decimal;
+drop table apm_decimal(p,s);
+
+create table apm_dec (apm_dec dec(p,s));
+insert into apm_dec values();
+insert into apm_dec values(null);
+select apm_dec from apm_dec ;
+drop table apm_dec ;
+
+create table apm_numeric (apm_numeric numeric(p,s));
+insert into apm_numeric values();
+insert into apm_numeric values(null);
+select apm_numeric from apm_numeric;
+drop table apm_numeric;
+
+create table apm_real(apm_real real);
+insert into apm_real values();
+insert into apm_real values(null);
+select apm_real from apm_real;
+drop table apm_real;
+
+create table apm_double(apm_double double);
+insert into apm_double values();
+insert into apm_double values(null);
+select apm_double from apm_double;
+drop table apm_double;
+
+create table apm_double_precision(apm_double_precision double precision);
+insert into apm_double_precision values();
+insert into apm_double_precision values(null);
+select apm_double_precision from apm_double_precision;
+drop table apm_double_precision;
+
+create table apm_float(apm_float float);
+insert into apm_float values();
+insert into apm_float values(null);
+select apm_float from apm_float;
+drop table apm_float;
+
+create table apm_varchar (apm_varchar varchar(n));
+insert into apm_varchar values();
+insert into apm_varchar values(null);
+select apm_varchar from apm_varchar;
+drop table apm_varchar;
+
+create table apm_character_varying (apm_character varying(n) character varying(n));
+insert into apm_character_varying values();
+insert into apm_character_varying values(null);
+select apm_character_varying from apm_character_varying;
+drop table apm_character_varying;
+
+create table apm_long_varchar(apm_long_varchar long_varchar);
+insert into apm_long_varchar values();
+insert into apm_long_varchar values(null);
+select apm_long_varchar from apm_long_varchar;
+drop table apm_long_varchar;
+
+create table apm_clob (apm_clob clob(n[K|M|G]));
+insert into apm_clob values();
+insert into apm_clob values(null);
+select apm_clob from apm_clob;
+drop table apm_clob;
+
+create table apm_graphic (apm_graphic graphic(n));
+insert into apm_graphic values();
+insert into apm_graphic values(null);
+select apm_graphic from apm_graphic;
+drop table apm_graphic;
+
+create table apm_vargraphic (apm_vargraphic vargraphic(n));
+insert into apm_vargraphic values();
+insert into apm_vargraphic values(null);
+select apm_vargraphic from apm_vargraphic ;
+drop table apm_vargraphic ;
+
+create table apm_long vargraphic (apm_long vargraphic long vargraphic(n));
+insert into apm_long vargraphic values();
+insert into apm_long vargraphic values(null);
+select apm_long vargraphic from apm_long vargraphic ;
+drop table apm_long vargraphic ;
+
+create table apm_dbclob (apm_dbclob dbclob(n[K|M|G]));
+insert into apm_dbclob values();
+insert into apm_dbclob values(null);
+select apm_dbclob from apm_dbclob ;
+drop table apm_dbclob ;
+
+create table apm_date(apm_date date);
+insert into apm_date values();
+insert into apm_date values(null);
+select apm_date from apm_date;
+drop table apm_date;
+
+create table apm_time(apm_time time);
+insert into apm_time values();
+insert into apm_time values(null);
+select apm_time from apm_time;
+drop table apm_time;
+
+create table apm_timestamp(apm_timestamp timestamp);
+insert into apm_timestamp values();
+insert into apm_timestamp values(null);
+select apm_timestamp from apm_timestamp;
+drop table apm_timestamp;
