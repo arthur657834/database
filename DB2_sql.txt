@@ -1,4 +1,29 @@
-create table apm_db2_sheet (apm_smallint  smallint,apm_integer  integer,apm_bigint  bigint,apm_decimal decimal(p,s),apm_dec,dec(p,s),apm_numeric numeric(p,s),apm_real real,apm_double double,apm_double_precision double precision,apm_float float,apm_varchar  varchar(n),apm_character_varying character varying(n),apm_long_varchar long varchar,apm_clob clob(n[K|M|G]),apm_graphic graphic(n),apm_vargraphic vargraphic(n),apm_long_vargraphic long vargraphic(n),apm_dbclob dbclob(n[K|M|G]),apm_date date,apm_time time,apm_timestamp timestamp)
+create table apm_db2_sheet (apm_smallint  smallint,apm_integer  integer,apm_bigint  bigint,apm_decimal decimal(p,s),apm_dec dec(p,s),apm_numeric numeric(p,s),apm_real real,apm_double double,apm_double_precision double precision,apm_float float,apm_varchar  varchar(n),apm_character_varying character varying(n),apm_long_varchar long varchar,apm_clob clob(n[K|M|G]),apm_graphic graphic(n),apm_vargraphic vargraphic(n),apm_long_vargraphic long vargraphic(n),apm_dbclob dbclob(n[K|M|G]),apm_date date,apm_time time,apm_timestamp timestamp)
+insert into apm_db2_sheet  values(32767,2147483647);
+insert into apm_db2_sheet  values(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+select apm_smallint from apm_db2_sheet ;
+select apm_integer from apm_db2_sheet ;
+select apm_bigint from apm_db2_sheet ;
+select apm_decimal from apm_db2_sheet ;
+select apm_dec from apm_db2_sheet ;
+select apm_numeric from apm_db2_sheet ;
+select apm_real from apm_db2_sheet ;
+select apm_double from apm_db2_sheet ;
+select apm_double_precision from apm_db2_sheet ;
+select apm_float from apm_db2_sheet ;
+select apm_varchar from apm_db2_sheet ;
+select apm_character_varying from apm_db2_sheet ;
+select apm_long_varchar from apm_db2_sheet ;
+select apm_clob from apm_db2_sheet ;
+select apm_graphic from apm_db2_sheet ;
+select apm_vargraphic from apm_db2_sheet ;
+select apm_long_vargraphic from apm_db2_sheet ;
+select apm_dbclob from apm_db2_sheet ;
+select apm_date from apm_db2_sheet ;
+select apm_time from apm_db2_sheet ;
+select apm_timestamp from apm_db2_sheet ;
+select * from apm_db2_sheet ;
+drop table apm_db2_sheet ;
 
 
 create table apm_smallint (apm_smallint  smallint );
@@ -8,13 +33,13 @@ select apm_smallint  from apm_smallint ;
 drop table apm_smallint ;
 
 create table apm_integer (apm_integer  integer );
-insert into apm_integer  values();
+insert into apm_integer  values(2147483647);
 insert into apm_integer  values(null);
 select apm_integer  from apm_integer ;
 drop table apm_integer ;
 
 create table apm_bigint (apm_bigint  bigint );
-insert into apm_bigint  values();
+insert into apm_bigint  values(922337317322337203);
 insert into apm_bigint  values(null);
 select apm_bigint  from apm_bigint ;
 drop table apm_bigint ;
