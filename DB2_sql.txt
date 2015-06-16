@@ -42,6 +42,7 @@ select apm_date from apm_db2_sheet ;
 select apm_time from apm_db2_sheet ;
 select apm_timestamp from apm_db2_sheet ;
 select apm_xml from apm_db2_sheet ;
+SELECT xmlelement (name "item", itemname),xmlelement (name "id", apm_smallint),xmlelement (name "brand",apm_integer),xmlelement (name "sku", apm_bigint) FROM apm_db2_sheet ; 
 select apm_udt from apm_db2_sheet;
 select * from apm_db2_sheet ;
 drop table apm_db2_sheet ;
@@ -220,7 +221,9 @@ INSERT INTO apm_xml VALUES ('<dept bldg="101">
     </employee>
 </dept>');
 insert into apm_xml values(null);
-
+select * from apm_xml where xmlexists('$c/dept/employee/name/first="John" 'passing apm_xml.apm_xml as "c");
+select xmlquery('$c/dept/employee/name/first="John" 'passing apm_xml.apm_xml as "c")  from apm_xml;
+select xmlquery('for $e in $c/dept/employee/name/first="John" return $e 'passing apm_xml.apm_xml as "c")  from apm_xml;
 select apm_xml from apm_xml;
 drop table apm_xml;
 
