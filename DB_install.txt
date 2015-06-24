@@ -1,0 +1,37 @@
+1. 
+./db2_install
+
+2. 
+groupadd -g 2000 db2iadm1
+groupadd -g 2001 db2fadm1
+useradd -m -g db2iadm1 -d /home/db2inst1 db2inst1
+useradd -m -g db2fadm1 -d /home/db2fenc1 db2fenc1
+passwd db2inst1
+passwd db2fenc1
+
+3.
+
+[root@localhost instance]# pwd
+/opt/ibm/db2/V10.1/instance
+[root@localhost instance]# chmod -R 775 *
+[root@localhost instance]# ./db2icrt -p 50000 -u db2fenc1 db2inst1
+[root@localhost instance]# su - db2inst1
+[db2inst1@localhost ~]$ db2sampl
+Creating database "SAMPLE"...
+Connecting to database "SAMPLE"...
+Creating tables and data in schema "DB2INST1"...
+Creating tables with XML columns and XML data in schema "DB2INST1"...
+'db2sampl' processing complete.
+[db2inst1@localhost ~]$ db2start
+SQL1026N The database manager is already active.
+[db2inst1@localhost ~]$ db2 connect to sample
+Database Connection Information
+Database server = DB2/LINUX 10.1.2
+SQL authorization ID = DB2INST1
+Local database alias = SAMPLE
+[db2inst1@localhost ~]$ db2 "select * from staff"
+
+4.
+切换至db2inst1
+执行：db2start:开启
+执行：db2stop :停止

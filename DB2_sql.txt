@@ -42,9 +42,11 @@ select apm_date from apm_db2_sheet ;
 select apm_time from apm_db2_sheet ;
 select apm_timestamp from apm_db2_sheet ;
 select apm_xml from apm_db2_sheet ;
-SELECT xmlelement (name "item", itemname),xmlelement (name "id", apm_smallint),xmlelement (name "brand",apm_integer),xmlelement (name "sku", apm_bigint) FROM apm_db2_sheet ; 
 select apm_udt from apm_db2_sheet;
+select count(0) from apm_db2_sheet ;
 select * from apm_db2_sheet ;
+create index index_db2 on apm_db2_sheet(apm_time);
+drop index index_db2;
 drop table apm_db2_sheet ;
 commit;
 drop type udt;
@@ -226,6 +228,7 @@ select xmlquery('$c/dept/employee/name/first="John" 'passing apm_xml.apm_xml as 
 select xmlquery('for $e in $c/dept/employee/name/first="John" return $e 'passing apm_xml.apm_xml as "c")  from apm_xml;
 select apm_xml from apm_xml;
 drop table apm_xml;
+commit;
 
 create type udt as integer with comparisons;
 create table apm_udt(apm_udt udt);
@@ -237,6 +240,159 @@ drop table apm_udt;
 commit;
 drop type udt;
 commit;
+
+CREATE PROCEDURE PROCEDURE_DB2 ()     
+LANGUAGE SQL  
+FOR EACH_RECORD AS 
+SELECT apm_udt FROM apm_udt
+DO
+INSERT INTO apm_udt VALUES (nextval FOR CMCS3_CONDITION_LINE_SEQ,apm_udt);
+END FOR;
+CALL PROCEDURE_DB2();
+DROP PROCEDURE PROCEDURE_DB2();
+
+--function
+CREATE function ca (r DOUBLE)
+RETURNS DOUBLE
+LANGUAGE SQL
+CONTAINS SQL
+NO EXTERNAL ACTION
+DETERMINISTIC
+RETURN 3.14159 * (r * r);
+SELECT ca(96.8) AS area FROM sysibm.sysdummy1;
+drop function ca;
+
+--xml
+create table xmlcustomer (cid bigint, info XML);
+insert into xmlcustomer values (1000, '
+<customerinfo>
+        <name>John Smith</name>
+         <addr country="Canada">
+                <street>Fourth</street>
+                <city>Calgary</city>
+                <state>Alberta</state>
+                <zipcode>M1T 2A9</zipcode>
+        </addr>
+        <phone type="work">963-289-4136</phone>
+</customerinfo>');
+
+insert into xmlcustomer values (1001, '
+<customerinfo>
+        <name>David Patterson</name>
+        <addr country="Canada">
+                <street>Fifth</street>
+                <city>Calgary</city>
+                <state>Alberta</state>
+                <zipcode>M1T 2A9</zipcode>
+        </addr>
+        <phone type="work">222-222-2222</phone>
+        <phone type="cell">333-333-3333</phone>
+</customerinfo>');
+
+update xmlcustomer
+set info = xmlquery( 'transform 
+                   copy $new := $INFO
+                   modify do replace value of $new/customerinfo/phone with "905-477-9011"
+                   return  $new') 
+where cid = 1000;
+
+select xmlquery('copy $new := $INFO
+                modify do replace value of $new/customerinfo/phone with "905-xxx-xxxx"
+                return $new ') 
+from xmlcustomer
+where cid = 1000;
+
+--update xmlcustomer
+--set info = xmlquery('copy $new := $INFO
+--             modify do replace value of $new/customerinfo/phone with $z
+--              return  $new '  passing  cast(? as varchar(15)) as "z")
+--where cid = ?
+
+--update xmlcustomer
+--set info = xmlvalidate(xmlquery('
+--             copy $new := $INFO
+--              modify do replace value of $new/customerinfo/phone 
+--               with "905-477-9011"
+--               return  $new ')
+--               according to xmlschema id "cust.custschema")
+-- where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery('copy $new := $INFO
+              modify do delete $new/customerinfo/phone
+              return  $new')
+where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery('copy $new := $INFO
+              modify do delete $new/customerinfo/phone/@type
+              return $new' )
+where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery('copy $new := $INFO
+              modify do rename $new/customerinfo/addr as "address"
+              return  $new' ) ;
+			  
+-- update xmlcustomer
+-- set info = xmlquery('copy $new := $INFO
+--                     modify do replace $new/customerinfo/phone with
+--                         <phone type="home">416-123-4567</phone> 
+--                      return  $new' )
+-- where cid = 1000;
+
+-- update xmlcustomer
+-- set info = xmlquery(' 
+--               copy $new := $INFO
+--               modify (do replace value of $new/customerinfo/phone with "416-123-4567",
+--                       do replace value of $new/customerinfo/phone/@type with "home")
+--               return  $new' ) 
+-- where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery('copy $new := $INFO
+                     modify do insert <phone type="cell">777-555-3333</phone> 
+                       into $new/customerinfo
+                     return  $new' )
+where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery('copy $new := $INFO
+                     modify do insert<phone type="cell">777-555-3333</phone>
+                             as last into $new/customerinfo
+                     return  $new' )
+where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery( 'copy $new := $INFO
+                      modify do insert <phone type="cell">777-555-3333</phone> 
+                        before $new/customerinfo/phone[1]
+                      return  $new' ) 
+where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery( 'copy $new := $INFO
+                      modify do insert <phone type="cell">777-555-3333</phone> 
+                        after $new/customerinfo/name
+                      return  $new' ) 
+where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery( 'copy $new := $INFO
+                      modify do insert <customerid>{ $CID } </customerid> 
+                        as first into $new/customerinfo
+                      return  $new' ) 
+where cid = 1000;
+
+update xmlcustomer
+set info = xmlquery(' 
+                 copy $new := $INFO
+                 modify do insert
+                            attribute customerid { $CID }
+                   into $new/customerinfo
+                 return  $new' )
+where cid = 1000;
+drop table xmlcustomer;
 
 values (1);
 values (null);
@@ -257,7 +413,6 @@ values current time -current timezone;
 values current timestamp -current timezone; 
 
 --获取当前年份
-
 values year(current timestamp);
 
 --获取当前月 
