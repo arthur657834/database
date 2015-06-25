@@ -47,6 +47,9 @@ select count(0) from apm_db2_sheet ;
 select * from apm_db2_sheet ;
 create index index_db2 on apm_db2_sheet(apm_time);
 drop index index_db2;
+create view view_db2 as select apm_udt from apm_db2_sheet;
+select * from view_db2;
+drop view view_db2;
 drop table apm_db2_sheet ;
 commit;
 drop type udt;
@@ -241,6 +244,22 @@ commit;
 drop type udt;
 commit;
 
+--终止符设置
+@
+CREATE PROCEDURE "PLName"(
+IN IN_ID BIGINT
+)
+BEGIN
+   declare V_RESULT  BIGINT; 
+   SET V_RESULT = NULL;
+   if (V_RESULT IS NULL) then insert into apm_udt values(2);
+   end if;
+   commit;
+END
+@
+call DB2INST1."PLName"(11);
+DROP PROCEDURE "PLName";
+
 CREATE PROCEDURE PROCEDURE_DB2 ()     
 LANGUAGE SQL  
 FOR EACH_RECORD AS 
@@ -393,6 +412,17 @@ set info = xmlquery('
                  return  $new' )
 where cid = 1000;
 drop table xmlcustomer;
+
+select avg(1) from sysibm.sysdummy1; 
+select count(*) from sysibm.sysdummy1; 
+select count_big(*) from sysibm.sysdummy1; 
+select max(1) from sysibm.sysdummy1; 
+select min(1) from sysibm.sysdummy1; 
+select stddev(1) from sysibm.sysdummy1; 
+select variance(1) from sysibm.sysdummy1; 
+select abs(1) from sysibm.sysdummy1; 
+select hex(1) from sysibm.sysdummy1; 
+select length(1) from sysibm.sysdummy1; 
 
 values (1);
 values (null);
