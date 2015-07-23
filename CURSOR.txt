@@ -1,0 +1,52 @@
+create table test(id int,city char(20))
+
+insert into  test values(1,'wuhan'),(2,'hangzhou'),(3,'chengdu')
+
+ 
+
+create procedure Test(
+
+out v_message varchar(500)
+
+)
+
+LANGUAGE SQL
+
+BEGIN
+
+DECLARE v_city char(20);
+
+DECLARE v_count int;
+
+ 
+
+SET v_message = '';
+
+select count(*) into v_count from test;
+
+BEGIN
+
+DECLARE v_CUR CURSOR FOR SELECT city FROM test FOR READ ONLY;
+
+OPEN v_CUR;
+
+WHILE v_count > 0 DO
+
+FETCH v_CUR INTO v_city;
+
+set v_message = v_message ||v_city||' ';
+
+set v_count = v_count -1;
+
+end while;
+
+END;
+
+ 
+
+END@
+
+call Test(?)
+
+drop procedure "Test";
+drop table test;
