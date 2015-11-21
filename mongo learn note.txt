@@ -1,0 +1,128 @@
+下载解压启动
+./mongod --dbpath=/data –logpath=/logs –port=27017
+也可将mongo的配置写入文件
+./mongod -f mongo.conf
+
+--nohttpinterface 关闭28017 端口,安全因素
+
+shell调用mongodb
+方法1：
+/root/mongodb-linux-x86_64-rhel62-3.0.7/bin/mongo -u root -p 12345678 192.168.100.53:27017/admin << MONGO
+use apm4application
+db.ProfileData.find({"application_id":"$appId"})
+MONGO
+
+方法2：
+./mongo --shell data.js
+echo "db" | ./mongo --shell
+./mongo --eval "db"
+
+切换数据库
+show dbs
+
+use ChatRoom
+db.dropDatabase()
+
+db.cloneDatabase("127.0.0.1");
+拷贝指定数据库
+db.copyDatabase("test","temp","127.0.0.1");
+
+db.repairDatabase();
+db<=>db.getName()
+db.stats();
+db.getMongo();
+db.version();
+db.getCollection("users");
+db.getCollectionNames();
+db.printCollectionStats();
+
+show users
+db.createUser({user:"test2",pwd:"1234",roles:[{role:"dbOwner",db:"temp"}]});
+db.getUser();
+db.getUser("test2");
+db.changeUserPassword("test2","22222222");
+db.dropUser("test2"); 
+db.dropAllUsers()
+
+查看表
+show collections
+
+创建数据表
+db.createCollection("Account")
+db.createCollection("Test",{capped:true, size:10000}) { "ok" : 1 }
+
+capped:true，表示该集合的结构不能被修改；
+size:在建表之初就指定一定的空间大小，接下来的插入操作会不断地按顺序APPEND数据在这个预分配好空间的文件中，如果已经超出空间大小，则回到文件头覆盖原来的数据继续插入。这种结构保证了插入和查询的高效性，它不允许删除单个记录，更新的也有限制：不能超过原有记录的大小。这种表效率很高，它适用于一些暂时保存数据的场合，比如网站中登录用户的session信息，又比如一些程序的监控日志，都是属于过了一定的时间就可以被覆盖的数据。
+
+修改数据表名
+db.Account.renameCollection("Account1")
+
+查看全部表记录
+db.Account.find()
+
+DBQuery.shellBatchSize查看默认显示条数
+DBQuery.shellBatchSize = 5
+
+查询一条记录
+db.Account.findOne()
+
+查询聚集中字段的不同记录
+db.Account.distinct("UserName")
+
+查询聚集中UserName以"keyword" 开头的记录
+db.Account.find({"UserName":/^keyword/})
+
+查询聚集中指定列
+db.Account.find({},{"UserName":1,"Email":1})    --1:true ，显示该列
+--SELECT UserName,Email FROM Account
+
+查询聚集中指定列，且Age > 20
+db.Account.find({"Age":{"$gt":20}},{"UserName":1,"Email":1})
+
+聚集中字段排序
+db.Account.find().sort({"UserName":1}) -- 升序
+db.Account.find().sort({"UserName":-1}) --降序
+
+统计聚集中记录条数
+db.Account.find().count()
+
+查询聚集中前5条记录 
+db.Account.find().limit(5)
+
+查询聚集中第10条以后的记录
+db.Account.find().skip(10)
+db.Account.find().skip(10).limit(5)
+
+增删改
+db.Account.insert({AccountID:2,UserName:"lb",Password:"1",Age:25,Email:"libing@163.com",RegisterDate:"2011-06-09 16:36:95"})
+db.Account.update({"AccountID":1},{"$set":{"Age":27,"Email":"libingql@163.com"}})
+db.Account.remove({"Age":{$lt:20}})
+db.Account.remove()
+db.Account.remove({})
+
+shell 脚本脚本调用
+
+#mongo sql语句执行及json数据处理
+function mongo_query(){
+        sql_mongo="/root/mongodb-linux-x86_64-rhel62-3.0.7/bin/mongo -u root -p 12345678 192.168.100.53:27017/admin"
+        echo use apm4application > tmp.js
+        echo 'db.ProfileData.find({},{"application_id":$appId})' >> tmp.js
+        x=`$sql_mongo < tmp.js`
+        x=${x#*\{}
+        echo ${x%\}*}|sed 's/,/,\n/g'  > tmp.txt
+        cat tmp.txt | sed s/:.*\(/:/ | sed s/\)// >tmp.txt
+        sed -i 1'i\{' tmp.txt
+        echo } >> tmp.txt
+        cat tmp.txt | jq .[] >> json.txt
+}
+
+./mongo -u root -p 12345678 192.168.100.53:27017/admin << MONGO
+use apm4application
+db.ProfileData.findOne()
+MONGO
+
+./mongo -u root -p 12345678 192.168.100.53:27017/admin --eval "printjson(db.stats())"
+ 
+
+
+
