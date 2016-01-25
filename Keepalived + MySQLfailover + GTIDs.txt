@@ -1,0 +1,184 @@
+-- MySQL半同步复制
+　　开启半同步后，在master提交一个写事务之后，master会block这个事务，直到备用master确认已经接受到了该复制事件，这时master才向应用程序确认提交成功。否则超时中断半同步，直到重新满足条件开启。
+
+在master提交事务之后，而slave未来得及接收复制事件，这时候master crash的话，应用程序会切换到slave上，并重新发起事务，这正好是我们所需要的，满足高可用的初衷。但是这里存在一个缺陷，那就是在master恢复之后，原来的事务已经提交，这时候复制会出现问题。
+解决办法：在原来的master恢复之后数据重做(推荐)，或者跳过重复数据错误。
+
+
+rpm -ivh mysql-community-common-5.7.10-1.el6.x86_64.rpm
+rpm -ivh mysql-community-libs-5.7.10-1.el6.x86_64.rpm
+rpm -ivh mysql-community-client-5.7.10-1.el6.x86_64.rpm
+rpm -ivh mysql-community-devel-5.7.10-1.el6.x86_64.rpm 
+rpm -ivh mysql-community-server-5.7.10-1.el6.x86_64.rpm 
+
+problem1:
+
+[Warning] TIMESTAMP with implicit DEFAULT value is deprecated.
+Please use --explicit_defaults_for_timestamp server option
+(seedocumentation for more details).
+
+在MySQL 5.6.6之前，TIMESTAMP的默认行为：
+
+TIMESTAMP列如果没有明确声明NULL属性，默认为NOT NULL。（而其他数据类型，如果没有显示声明为NOT NULL，则允许NULL值。）设置TIMESTAMP的列值为NULL，会自动存储为当前timestamp。
+
+表中的第一个TIMESTAMP列，如果没有声明NULL属性、DEFAULT或者 ON UPDATE，会自动分配 DEFAULT CURRENT_TIMESTAMP和ON UPDATE CURRENT_TIMESTAMP 属性。
+
+表中第二个TIMESTAMP列，如果没有声明为NULL或者DEFAULT子句，默认自动分配’0000-00-00 00:00:00′。插入行时没有指明改列的值，该列默认分配’0000-00-00 00:00:00′，且没有警告。
+
+关闭警告，在my.cnf中加入
+[mysqld]
+explicit_defaults_for_timestamp=true
+
+作用:
+TIMESTAMP如果没有显示声明NOT NULL，是允许NULL值的，可以直接设置改列为NULL，而没有默认填充行为。
+TIMESTAMP不会默认分配DEFAULT CURRENT_TIMESTAMP 和 ON UPDATE CURRENT_TIMESTAMP属性。
+
+server-id=1
+gtid-mode=on                    -- 启动gtid模式
+enforce_gtid_consistency        -- 强制gtid一致性 5.6.9之前的版本为disable-gtid-unsafe-statement
+log-bin=/tmp/mysql_bin                          -- master和slave都必须启用binlog
+log-slave-updates                -- 必须使用
+	
+
+[client]
+default-character-set=utf8
+ 
+port=3306
+ 
+[mysql]
+ 
+default-character-set=utf8
+ 
+[mysqld]
+character_set_server=utf8
+# The TCP/IP Port the MySQL Server will listen on
+port=3306
+max_connections=200
+default-storage-engine=INNODB 
+
+rm -fr /var/lib/mysql/* 
+mysqld --initialize --datadir=/var/lib/mysql
+rm -fr /tmp/mysql_bin.*
+chown -R mysql:mysql /var/lib/mysql/
+
+mysqld_safe --user=mysql --skip-grant-tables --skip-networking & 
+mysql -u root mysql
+	UPDATE user SET authentication_string=PASSWORD('123456') where USER='root'; //存储密码的字段换了!!!!!!!!!
+	FLUSH PRIVILEGES;
+	quit
+
+/etc/init.d/mysqld stop
+nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
+mysql -uroot -p123456
+	alter user 'root'@'localhost' identified by '123456';
+	GRANT ALL PRIVILEGES ON *.* TO root@"%" IDENTIFIED BY "123456";
+	FLUSH PRIVILEGES;
+	quit
+/etc/init.d/mysqld stop
+nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
+
+>/var/log/mysqld.log ;mysqld_safe --user=mysql --datadir=/var/lib/mysql;cat /var/log/mysqld.log
+>/var/log/mysqld.log ;/etc/init.d/mysqld start;cat /var/log/mysqld.log
+
+在master与备用master上安装半同步
+mysql -uroot -p123456
+	install plugin rpl_semi_sync_master SONAME 'semisync_master.so';
+	install plugin rpl_semi_sync_slave SONAME 'semisync_slave.so';
+	quit
+	
+在master上启用半同步
+
+(1)在Master MySQL上创建一个用户‘repl’，并允许其他Slave服务器可以通过远程访问Master，通过该用户读取二进制日志，实现数据同步
+	create user repl;
+	GRANT REPLICATION SLAVE ON *.* TO 'repl'@'192.168.1.%' IDENTIFIED BY 'redhat';
+	flush privileges;
+	
+	//repl用户必须具有REPLICATION SLAVE权限，除此之外没有必要添加不必要的权限，密码为mysql。说明一下192.168.1.%，这个配置是指明repl用户所在服务器，这里%是通配符，表示192.168.0.0-192.168.0.255的Server都可以以repl用户登陆主服务器。当然你也可以指定固定Ip。
+
+	
+(2)mysql -uroot -p123456
+	set global rpl_semi_sync_master_enabled = 1;          -- 开启为master角色
+	set global rpl_semi_sync_master_timeout = 1000;     -- 配置
+
+(rpl_semi_sync_master_timeout=1000)表示主库在某次事务中，如果等待时间超过1000毫秒，那么则降级为普通模式，不再等待备库。如果主库再次探测到，备库恢复了，则会自动再次回到Semi-sync状态。建议把半同步跑在高速网络环境中
+
+配置slave:
+mysql -uroot -p123456
+	change master to master_host='10.1.51.150',master_port=3306,master_user='repl',master_password='redhat',master_auto_position=1; 
+	-- 表示基于GTIDs的主从 MySQL自动判断从哪开始同步 基于GTIDs的主从已经不需要手动指定编号了
+	start slave;                    
+	-- 启动slave;
+	
+在备用master上启用半同步：
+mysql -uroot -p123456
+	stop slave;
+	SET GLOBAL rpl_semi_sync_slave_enabled = 1;
+	start slave;
+
+修改 master与备用master 配置文件 	
+vi /etc/my.cnf
+添加一下内容
+rpl_semi_sync_master_enabled=1
+rpl_semi_sync_master_timeout=1000
+rpl_semi_sync_slave_enabled=1
+
+重启mysql
+	/etc/init.d/mysqld stop
+	nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
+
+-- 查看半同步状态
+show status like '%semi_sync%';
+master上
+Rpl_semi_sync_master_clients               | 1                                 -- 有一个slave(备用master)开启半同步
+Rpl_semi_sync_master_status                | ON                             -- 已开启成功
+ 
+备用master上
+Rpl_semi_sync_slave_status                 | ON                                -- 已开启成功
+
+
+安装配置MySQLfailover
+monitor:
+yum install -y mysql-utilities.noarch
+-- 在所有mysql上给mysqlfailover监控机授权 -- 在master上操作即可 因为会自动同步
+mysql -uroot -p123456
+create user replm;
+grant create,insert,drop,select,super,replication slave,reload on *.* to 'replm'@'10.1.51.155' IDENTIFIED BY 'redhat';
+flush privileges;
+
+修改所有mysql配置
+vi /etc/my.cnf
+添加以下配置
+report_host=10.1.51.155                                                      -- 只读参数 指定报告主机为10.1.1.210(mysqlfailover monitor)
+master_info_repository=TABLE                                          -- 把master.info的信息 保存到数据库里面 mysqlfailover必须 原本默认保存到文件
+relay_log_info_repository=TABLE                                       -- 把relay_log信息保存到数据库里面 mysqlfailover必须 原本默认保存到文件
+
+-- 把备用master和其他slave的mysql设置为read_only  防止后面使用到的keepalived误漂移或其他误操作导致数据写错地方 强大mha套件也是这样做的
+vim /etc/my.cnf
+添加以下配置
+read_only=1                                                            -- mysql只读
+
+重启mysql
+	/etc/init.d/mysqld stop
+	nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
+	
+mysql -uroot -p123456
+	grant replication slave,reload,super on *.* to 'repl'@'10.1.51.150' identified by 'redhat';
+	grant replication slave,reload,super on *.* to 'repl'@'10.1.51.153' identified by 'redhat';
+	flush privileges;
+
+
+以下不会！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+-- 确认slave_master_info的表引擎为innodb
+mysql> show create table slave_master_info;
+ENGINE=InnoDB                                                                -- 若此表引擎不为innodb请修改表引擎
+
+	
+       
+show VARIABLES  LIKE '%log_%';
+SHOW BINARY LOGS;
+mysqlbinlog  "D:\Program Files (x86)\MySQL\MySQL Server5.5\data\joe-bin.000002" >c:\binlog.txt
+删除所有的二进制日志文件
+RESET MASTER;
+只删除部分二进制日志文件使用PURGE MASTER LOGS;
+PURGE {MASTER | BINARY} LOGS TO 'log_name'
+PURGE {MASTER | BINARY} LOGS BEFORE 'date'
