@@ -172,8 +172,83 @@ mysql -uroot -p123456
 mysql> show create table slave_master_info;
 ENGINE=InnoDB                                                                -- 若此表引擎不为innodb请修改表引擎
 
-	
-       
+编写脚本
+vim /usr/local/sbin/mysqlfailover_after.sh                        -- 编写failover后执行的脚本
+#!/bin/bash
+candidateIP=$3                                                                   -- 接收备用master的IP
+mysql -ureplm -preplm -h $candidateIP -e 'set global read_only=0'                -- 把候选者mysql的只读取消
+mysql -ureplm -preplm -h $candidateIP -e 'set global rpl_semi_sync_master_enabled=1'        -- 开启备用master的半同步状态为master
+
+mysqlfailover --master=replm:replm@10.1.51.150 --slaves=replm:replm@10.1.51.153,replm:replm@10.1.51.154 --candidates=replm:replm@10.1.51.153 --force --log=/var/log/mysqlfailover.log --exec-after=/usr/local/sbin/mysqlfailover_after.sh  --daemon=start //-- deamon=stop为关闭
+解释
+--master=replm:replm@10.1.1.207                        -- 指定连接master的用户名(刚刚给mysqlfailover授权的用户)和密码和master的IP
+--slaves=                                                                  -- 指定所有slave(包括备用master)的用户名和密码和IP地址 多个slave之间用逗号隔开
+--candidates=                                                          -- 指定备用master是哪台
+--force                                                                       -- 最好添加 如果mysqlfailover上次意外退出 不添加此参数 则不能启动mysqlfailover
+--log=                                                                        -- 指定配置文件路径
+--exec-before=                                                          -- 指定failover切换前执行的脚本路径 (刚刚编写的脚本路径)
+--exec-after=                                                             -- 指定failover切换后执行的脚本路径 (刚刚编写的脚本路径)
+--daemon=start                                                         -- 以服务的形式运行 start表示启动 stop表示停止 restart表示重启 detach表示占用前台但只输出到日志
+
+
+配置keepalived
+vim /usr/local/keepalived/mysqld_script/mysqld_check.sh
+#!/bin/bash
+mysqladmin -predhat ping 2> /dev/null | grep alive >> /dev/null                            -- 判断mysqld是否存活
+exit $? 
+
+vim /usr/local/keepalived/etc/keepalived/keepalived.conf
+vrrp_script chk_mysqld {                                                                   -- 定义检查脚本
+        script "/usr/local/keepalived/mysqld_script/mysqld_check.sh"
+        interval 2
+        timeout 2
+        fall 3
+}
+ 
+vrrp_instance mysqld {
+    state BACKUP                    -- 重点 master也设置为backup 不会抢VIP
+    interface eth0
+    virtual_router_id 52
+    priority 150 //备用上配置100    -- 权重 比备用master高
+    nopreempt                       -- 重点 设置为mysql恢复后不抢回VIP 如果mysql master启动后VIP又飘过去 即不安全又麻烦
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        10.1.1.211      -- 指定VIP mysql需要监听在此VIP上 注意/etc/my.cnf上的bind-address
+    }
+    track_script {                   -- 指定定义监控脚本
+        chk_mysqld
+    }
+}
+
+测试：
+vim /usr/local/sbin/mysql_insert.sh
+#!/bin/bash
+flag=1
+while ((1==1))                                                                    -- 定义死循环 无限插入sql
+do
+        RECV=1
+        flag=$((flag=$flag+1))
+        while (($RECV!=0))                                                     -- 这里为了模拟真实环境对操作语句是否成功的判断 并保证语句失败重新提交 根据返回值定义了循环
+        do
+                mysql -h10.1.51.156 -u'user_db01' -predhat -e "insert into db01.t1 values($flag,'a')" &>> /tmp/mysql_insert.log        -- 执行语句并把输出重定向给日志文件
+                RECV=$?
+                echo "insert into db01.t1 values($flag,'a')" >> /tmp/mysql_insert.log
+                echo $RECV >> /tmp/mysql_insert.log
+                sleep 0.01
+        done
+done
+
+create database db01;
+create table t1(id int,name char(3));
+grant all on db01.* to user_db01@'10.1.1.210' identified by 'redhat';
+
+show variables like 'read_only';
+show slave status\G;
+show status like '%semi_sync%';
 show VARIABLES  LIKE '%log_%';
 SHOW BINARY LOGS;
 mysqlbinlog  "D:\Program Files (x86)\MySQL\MySQL Server5.5\data\joe-bin.000002" >c:\binlog.txt
