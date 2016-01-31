@@ -179,7 +179,7 @@ candidateIP=$3                                                                  
 mysql -ureplm -preplm -h $candidateIP -e 'set global read_only=0'                -- 把候选者mysql的只读取消
 mysql -ureplm -preplm -h $candidateIP -e 'set global rpl_semi_sync_master_enabled=1'        -- 开启备用master的半同步状态为master
 
-mysqlfailover --master=replm:replm@10.1.51.150 --slaves=replm:replm@10.1.51.153,replm:replm@10.1.51.154 --candidates=replm:replm@10.1.51.153 --force --log=/var/log/mysqlfailover.log --exec-after=/usr/local/sbin/mysqlfailover_after.sh  --daemon=start //-- deamon=stop为关闭
+mysqlfailover --master=replm:redhat@10.1.51.150 --slaves=replm:redhat@10.1.51.153,replm:redhat@10.1.51.154 --candidates=replm:redhat@10.1.51.153 --force --log=/var/log/mysqlfailover.log --exec-after=/usr/local/sbin/mysqlfailover_after.sh  --daemon=start //-- deamon=stop为关闭
 解释
 --master=replm:replm@10.1.1.207                        -- 指定连接master的用户名(刚刚给mysqlfailover授权的用户)和密码和master的IP
 --slaves=                                                                  -- 指定所有slave(包括备用master)的用户名和密码和IP地址 多个slave之间用逗号隔开
@@ -190,6 +190,8 @@ mysqlfailover --master=replm:replm@10.1.51.150 --slaves=replm:replm@10.1.51.153,
 --exec-after=                                                             -- 指定failover切换后执行的脚本路径 (刚刚编写的脚本路径)
 --daemon=start                                                         -- 以服务的形式运行 start表示启动 stop表示停止 restart表示重启 detach表示占用前台但只输出到日志
 
+因为mysql5.7 密码字段已修改为 authentication_string 所以需要在user表中加入password字段
+alter table user add Password char(41) not null;
 
 配置keepalived
 vim /usr/local/keepalived/mysqld_script/mysqld_check.sh
