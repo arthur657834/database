@@ -31,6 +31,9 @@ replicate-ignore-table=lj.h2
 配置项可以查看show slave status;结果
 SHOW MASTER STATUS; 查看master状态，记录master_log_file
 
+#若涉及及同步函数或者存储过程需要配置，否则主备会产生异常不能同步
+log_bin_trust_function_creators=TRUE
+
 salve：
 vi /etc/my.cnf
 [mysqld] +
