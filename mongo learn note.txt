@@ -49,7 +49,7 @@ show collections
 
 创建数据表
 db.createCollection("Account")
-db.createCollection("Test",{capped:true, size:10000}) { "ok" : 1 }
+db.createCollection("Test",{capped:true, size:10000})
 
 capped:true，表示该集合的结构不能被修改；
 size:在建表之初就指定一定的空间大小，接下来的插入操作会不断地按顺序APPEND数据在这个预分配好空间的文件中，如果已经超出空间大小，则回到文件头覆盖原来的数据继续插入。这种结构保证了插入和查询的高效性，它不允许删除单个记录，更新的也有限制：不能超过原有记录的大小。这种表效率很高，它适用于一些暂时保存数据的场合，比如网站中登录用户的session信息，又比如一些程序的监控日志，都是属于过了一定的时间就可以被覆盖的数据。
