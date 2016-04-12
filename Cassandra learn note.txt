@@ -1,3 +1,4 @@
+非root用户
 wget http://apache.fayea.com/cassandra/3.4/apache-cassandra-3.4-bin.tar.gz
 tar zxvf apache-cassandra-3.4-bin.tar.gz
 cd apache-cassandra-3.4/bin
