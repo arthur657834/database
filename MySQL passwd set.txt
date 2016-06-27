@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 U2FsdGVkX19fLClX3S2HMcyMwHT31vA7JBrb0tbT2jPe/sU906qI45YY1phPmUBK
 9jYPpIOUltXp74aEzG8MXy8pWZzwICfNTTxGDMwl95QdtH4L2ShW0RoVtC042SZ0
 zbQgMLpdc/C/t48oEeVQaft6/dwySsyY3iowC+Bo7S3zeaowPhyjDXRpx3Ptym0B
@@ -14,3 +15,38 @@ BqsLJPOOs3ah+samWZZzuXbOvpQN0YtNx+MGXCKmPku+Ixwx/tx5tbqb55ZaACjo
 r/MdpRqxTOeJqlYYceQBZK64pyMbQZTrwhnFCWkzRxV4fHa20cgZj0csc1oFPbua
 QLAJfXRmFJF1z4Jf7xsFGbyMcibRzDgyBA9IeJ3I4XQLNDuviEhjR9asM7B2bO7d
 RgVn27Ddw72/5hMAEmo4plX25LYJCKEWgbDMRz0/EP9/AVmCrv4MfA==
+=======
+方法1： 用SET PASSWORD命令
+
+　　mysql -u root
+
+　　mysql> SET PASSWORD FOR 'root'@'localhost' = PASSWORD('newpass');
+
+方法2：用mysqladmin
+
+　　mysqladmin -u root password "newpass"
+
+　　如果root已经设置过密码，采用如下方法
+
+　　mysqladmin -u root password oldpass "newpass"
+
+方法3： 用UPDATE直接编辑user表
+
+　　mysql -u root
+
+　　mysql> use mysql;
+
+　　mysql> UPDATE user SET Password = PASSWORD('newpass') WHERE user = 'root';
+
+　　mysql> FLUSH PRIVILEGES;
+
+在丢失root密码的时候，可以这样
+
+　　mysqld_safe --skip-grant-tables&
+
+　　mysql -u root mysql
+
+　　mysql> UPDATE user SET password=PASSWORD("new password") WHERE user='root';
+
+　　mysql> FLUSH PRIVILEGES;
+>>>>>>> fc99f060bcf468353d21398eb28c28e7d885d6d5
