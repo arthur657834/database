@@ -1,52 +1,16 @@
-<<<<<<< HEAD
-U2FsdGVkX19fLClX3S2HMcyMwHT31vA7JBrb0tbT2jPe/sU906qI45YY1phPmUBK
-9jYPpIOUltXp74aEzG8MXy8pWZzwICfNTTxGDMwl95QdtH4L2ShW0RoVtC042SZ0
-zbQgMLpdc/C/t48oEeVQaft6/dwySsyY3iowC+Bo7S3zeaowPhyjDXRpx3Ptym0B
-PySM1FrzP4KsAPhLfewrt2OsS3Jy03ilO2CtlZLoB34514nwRlLuAF0YAUcqdAdI
-jd1aO6WvbDaITzSDMPphLd1CKc49OzxS6zsFJBfJh63WP6f+4693yZJhkoPwokN/
-ExP9NByM72Cw48AKrGe9ouri8P+ne7mCcvtIGHuwozIKzPsJuu0GMg7HSSI3vAb1
-DENFH34z+RMJ9iboMKtjlQZbzlPQZQagKhiN169+tLeEeSeytbC0Bw+WJO8zJ0vv
-nKHQhuwwz87/71ugkGZBrHUhtn4fdcg9YhA9d4CJXHZ5YE13xr7HYvs2lteeUpG/
-vZBceroKsHz1ocOqq8fefqas38eEUfOaeHt8Ev1560Yc+DdsnF06RpgfvrhhIb83
-aY/5qyt2t527cdQ29myFKJQdM8MQ7RvyNfBK2kezIvzJpoTYHkjqRFQV8Ir+D+iD
-5Ivp7ZAyTSLObuqVbiDYN/3wZ6EUkLFI5aL9Y3JAb0VYB2/Y1SIDIs3z5P81ik31
-BqsLJPOOs3ah+samWZZzuXbOvpQN0YtNx+MGXCKmPku+Ixwx/tx5tbqb55ZaACjo
-75GzAzlsYON309j96LgYzMiVd8SRubqj6cIMEW6SuIFZS6t45EZ1TFAFmRTITtke
-r/MdpRqxTOeJqlYYceQBZK64pyMbQZTrwhnFCWkzRxV4fHa20cgZj0csc1oFPbua
-QLAJfXRmFJF1z4Jf7xsFGbyMcibRzDgyBA9IeJ3I4XQLNDuviEhjR9asM7B2bO7d
-RgVn27Ddw72/5hMAEmo4plX25LYJCKEWgbDMRz0/EP9/AVmCrv4MfA==
-=======
-方法1： 用SET PASSWORD命令
-
-　　mysql -u root
-
-　　mysql> SET PASSWORD FOR 'root'@'localhost' = PASSWORD('newpass');
-
-方法2：用mysqladmin
-
-　　mysqladmin -u root password "newpass"
-
-　　如果root已经设置过密码，采用如下方法
-
-　　mysqladmin -u root password oldpass "newpass"
-
-方法3： 用UPDATE直接编辑user表
-
-　　mysql -u root
-
-　　mysql> use mysql;
-
-　　mysql> UPDATE user SET Password = PASSWORD('newpass') WHERE user = 'root';
-
-　　mysql> FLUSH PRIVILEGES;
-
-在丢失root密码的时候，可以这样
-
-　　mysqld_safe --skip-grant-tables&
-
-　　mysql -u root mysql
-
-　　mysql> UPDATE user SET password=PASSWORD("new password") WHERE user='root';
-
-　　mysql> FLUSH PRIVILEGES;
->>>>>>> fc99f060bcf468353d21398eb28c28e7d885d6d5
+U2FsdGVkX1+ttMC/DNlvLKF3DRLDwzGDk4ftJPSBPc4iPEyxH7XtIzKAt2SD7uQk
+J/LvoiyOPx/pXy3OD9GQq2jm8S6pE/6hsyMGqtNXGYAVgNOAV+5Gz3ZBvYwrBwVN
+3BFC8iHKKMQHk1OfqC7fhBb2S8BTyn9ojvZp+Ekg0YwfgxBsXgI379/pbALjkzuQ
+pCunc48VcayevGnRafe9yj0tbnoVLRN0ZhFvb8dLSwCR3HF+aGQlumiFAT1O9z2L
+M73rJ81uMWRoSzIfDMhyZE70tRTv3c50b38ZxLQP+0WGr3eDZwJshYzbYHyNFbu5
+8lKG5DLnEr1hCFnaFjjW7N6FqJXqVWaB1nsiCcudmO1qIX1ujcaoiSU1hsXA8+zf
+aYerJL0Gbm9Xmc3dsxaVTqsy2LIHSCd99DiehGj3zynNFoTLOarKsxY2rvHilVBW
+5lvzS3BRLgcdagIM1duFzyXgA051nOTT9REaphrYL/cabqytnmwzpCqOUNvG0uId
+Cu1Tux7Zxt0zDgEoINsvQN1pDHvH48LOVItd/IXO2ZMugNGKHiVxbP4UZbcS4dNw
+a0JTPuTgQRVBTvakkzI9/9D/8xkC17qWvWWhab6sPlta//3krEBQJcXqD+lnz/aA
+Mr5aDSih9lPbdXftHgvpkJi6/OLYnV0OKfq0n6D/vTWBYcCkQFoVLEnae7k187DL
+ii9YB1KIhhCe1P773ahKZPSS5O2cLiBjv3FbfQJXPeY4Vzk/UVzzVKx82RS03DH4
+S8C3EyiK0OHMlwQIZ6KqdUwT9T//BOsXJ3DZse6z5pkF3TWEzqOKBQB5xEWYDmu+
+dYQgi/ypIe/diOrRH0YkQlRrlO8h3ZmroxEH6A8XIUMgs9rM3lh8uK3FzjTK5g2W
+KYpL9liQb14avThIIct4SD3XiTzyat1zx1ILgT6vBfADqJWPDBqLjQnCR69zcGIo
+ek6ha6RhUWkE+YEI4DznRI4i5cEnMt0beq1uNKnrwYdeMEwVxFU5RQ==
