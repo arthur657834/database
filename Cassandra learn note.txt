@@ -1,43 +1,30 @@
-非root用户
-wget http://apache.fayea.com/cassandra/3.4/apache-cassandra-3.4-bin.tar.gz
-tar zxvf apache-cassandra-3.4-bin.tar.gz
-cd apache-cassandra-3.4/bin
-启动:./cassandra -f
-关闭:pgrep -f cassandra | xargs kill -9
-
-
-DESCRIBE keyspaces;
-
-CREATE KEYSPACE mykeyspace WITH REPLICATION = { 'class' : 'SimpleStrategy','replication_factor' : 2 };
-
-USE mykeyspace;
-
-CREATE TABLE users (user_id int PRIMARY KEY,fname text,lname text);
-
-DESCRIBE TABLES;
-
-INSERT INTO users (user_id,  fname, lname) VALUES (1745, 'john', 'smith');
-INSERT INTO users (user_id,  fname, lname) VALUES (1744, 'john', 'doe');
-INSERT INTO users (user_id,  fname, lname) VALUES (1746, 'john', 'smith');
-
-SELECT * FROM users;
-
-CREATE INDEX ON users (lname);
-SELECT * FROM users WHERE lname = 'smith'; // 没有索引不能使用where
-
-DROP TABLE users;
-
-配置远程访问：
-vi conf/ cassandra.yaml
-listen_address: 192.168.1.15（本地的静态IP地址，改为IP的目的是可以远程连接）
-rpc_address: 192.168.1.15
-
-配置用户：
-./cqlsh -u cassandra -p cassandra 192.168.1.15 //默认用户
-
-CREATE USER myusername WITH PASSWORD 'mypassword' SUPERUSER ;
-drop user cassandra;//最好删除默认用户
-注意，如果是集群模式，只需要在一台机器上配置就可以了，会自动同步过去
-
-修改权限：
-authorizer: CassandraAuthorizer
+U2FsdGVkX19ul+W+3KgzYqr8xg6dSiL030L3C+V+qm9YDsaH4g2NP1zTMYPO9Rk2
+QYosf0dIRZNnmMJwJH3apywy8Ab3tImeAqQ6iJF6gozs5WCbfkKnX0kolq2VjjYJ
+EGwxdFh9SQz2r3KSOhLmdPhJ7uP3RVuNHCeOhU2Sbd0brjWFk3OWktWu16Hs0sbP
+t83/SmH4BMaR6zXG5SJX1hzp+4k8x7LaNDzTZUf2GibYr6Sea+nz8hc0OFgdAl5s
+WzePAAXYO/RzklF6dJAWB2jegDSOjx2QttEEbpuvXZO5jtirUks3Uxx99UP20Pva
+AtPpdCZoZvaUXrl9GS4P56JL3PZjHF8lRQpqH1TbarRyMUWbByWAeKyVStgDB7Do
+N7dvSjiGJlcobtisdzS/Kw7n704ujXZKbLe0LSLn/7C7GNN952xgrrCl8x0/Yy1G
+tJ7WcLJH0V1HNZ4/r/8JclOiKecqTCgFqU8QZx34nnYx6qPLXCtLiQoV6V4xIY7R
+0vDfr970gmTlLyKYocrScCVidv8mns9EAivcbCVO8WP9IqsX1WABmvl/0heE60si
+NHzqw/iDPRMGGzVn691lQVNXAv6EyD1GdI4GdzvwfMJNRxW33pcniZt3xIrYwQr9
+gnKUvjEN2JerK5WApi4gmMpFjsMxArkz1xm1CJw9vr2o9hjH8pc3zjH9Vy6T9tk3
++XypJhFK3iT9oImH4d18VJkLDbP20Elb2PouGzeNYnOw5VbiXp1z2DlYheQVvnvB
+qmYGUZ9/b1/SMmmYvq7Qplc//l1UbAWlTMfyEIU4O98+pOLVEuMbg8jd9wFyVJUu
+2/P4hiF8drNnwl4lhEQszqIN1kL3VQL5GJ9g/acvCUMw7zmhtwHQA2chyfsZVYQ9
+LrzbXcVK4MFldr57r7S2sdH3vzyaqRf5SR9R7++LGs+eyxiyf+IGRY2QX2+bZ8Jl
+WwP5hu1rgcfAtHiVwrNHlKW8A/KIxWcJ4vyu/pBOup2WHLhAdAXsk47rX0yOoLm7
+a6kin7Qnbm7PHyzcWDB2iSkHXyMviO05HDdCkh4oJ/EhhqIyjx4H3LfVdUahs329
+DGJFaUcqcUkGxlIVuV5t3c7nEUN1xFt+u7HpaN3aJa+j6RXJcIEG49n9QJOgn6gb
+w8JI5+1VKG9ODCZ7zSgGURcZIcTCHAVtoJ42KHEhsVmcJLaaq6GInlhAGDNvvKSU
+752nOIu90FpB3/hb9+GiuwD2Ix0KqRhpSOaEygK3Gnh8ZvLLZhKoVPXicjU/Wksz
+r0aVJIGFkDBaMB6ONVvcFuHxKAvD0DppFEdMyQnbrO+7INmCn+3hcrjtGgcLXWVv
+ZQtsDodpRlwpRh+ottqslt6oHAXL9766f6pcKKlQOu/b4eqk8GmDDuGfw0aa+qcj
+vjBqNpNGOER3QkLU2MjuBbBOStWQpdj8aaUWacqhf87zxcOUlZeK67a5Gyp+A4fe
+6LiPOfXe9IZ/CcXNegU8sZMMXSlCbGe4cEKS2xR6FBNCd4W0WOgm1+dK097osNN9
+wCcsBKm1ka49ZzVGQPel3PdfsYVARv7pnS3kIydwGbEcFYrbxCzJJD9CZohb98gl
+P4x2JwAzkYNq1oimJPVIv3lcyJWILZ/0FtCngIDcxpOCHcyGZRGll7kOSzzy9nBb
+dQejd9T7hMCiBLuGPoLXL4Ze+aTaMjaNAf8CnDLYqKfw5kkMbSoJ+P/YC9y4Czga
+xrrrRJffr7nMpsA8W3N8cIQ42EP0iWtqbHE16pvuVnuZWVXlQnCwsKY7pR5YBZJ0
+b6gvGPYCgOPvk/M6BAY8vSC+hK4bBbRvFzQGki/lDhlpP41PTVOpciV3cumIqsVQ
+R2DMCMPD70Y=

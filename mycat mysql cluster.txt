@@ -1,62 +1,63 @@
-能实现读写分离，分片存储
-
-wget https://github.com/MyCATApache/Mycat-download/blob/master/1.4-RELEASE/Mycat-server-1.4-release-20151019230038-linux.tar.gz
-tar -vxzf Mycat-server-1.4-release-20151019230038-linux.tar.gz 
-
-配置conf/server.xml,conf/schema.xml
-
-./mycat start
-netstat -na | grep 8066
-
-dataHost的balance属性设置为： 
-• 0，不开启读写分离机制 
-• 1，全部的readHost与stand by writeHost参与select语句的负载均衡，简单的说，当双主双从模式(M1->S1，M2->S2，并且M1与 M2互为主备)，正常情况下，M2,S1,S2都参与select语句的负载均衡。 
-• 2，所有的readHost与writeHost都参与select语句的负载均衡，也就是说，当系统的写操作压力不大的情况下，所有主机都可以承担负载均衡。 
-
-改天研究一下rule怎么使用的！！！！！
-mycat有自己的监控命令 例： show @@sql.slow;  show @@heartbeat;
-
-ex：
-server.xml:
-<user name="root">
-        <property name="password">123456</property>
-        <property name="schema">db1,db2,db3</property>
-</user>
-
-schema.xml:
-<?xml version="1.0"?>
-<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
-<mycat:schema xmlns:mycat="http://org.opencloudb/">
-	<schema name="TESTDB" checkSQLschema="false" sqlMaxLimit="100">
-		<!-- auto sharding by id (long) -->
-		<table name="travelrecord" dataNode="dn1,dn2,dn3" rule="auto-sharding-long" />
-		<!-- global table is auto cloned to all defined data nodes ,so can join 
-with any table whose sharding node is in the same data node -->
-		<table name="company" primaryKey="ID" type="global" dataNode="dn1,dn2,dn3" />
-		<table name="goods" primaryKey="ID" type="global" dataNode="dn1,dn2" />
-		<!-- random sharding using mod sharind rule -->
-		<table name="hotnews" primaryKey="ID" dataNode="dn1,dn2,dn3"
-				rule="mod-long" />
-		<table name="employee" primaryKey="ID" dataNode="dn1,dn2"
-				rule="sharding-by-intfile" />
-		<table name="customer" primaryKey="ID" dataNode="dn1,dn2"
-				rule="sharding-by-intfile">
-			<childTable name="orders" primaryKey="ID" joinKey="customer_id"
-					parentKey="id"> //表连接查询时使用！！！！！！
-			</childTable>
-		</table>
-		<table name="mycat_sequence" dataNode="dn1" />
-	</schema>
-	<dataNode name="dn1" dataHost="localhost1" database="db1" />
-	<dataNode name="dn2" dataHost="localhost1" database="db2" />
-	<dataNode name="dn3" dataHost="localhost1" database="db3" />
-	<dataHost name="localhost1" maxCon="1000" minCon="10" balance="3"
-			writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
-		<heartbeat>select user()</heartbeat>
-		<!-- can have multi write hosts -->
-		<writeHost host="hostM1" url="10.1.51.153:3306" user="root" password="123456">
-			<!-- can have multi read hosts -->
-			<readHost host="hostS1" url="10.1.51.154:3306" user="root" password="123456" weight="1" />
-		</writeHost>
-	</dataHost>
-</mycat:schema>
+U2FsdGVkX1958Rf0D6Rw+58uyQAKZ6KvRCnpxH0NpvFMgXbeVUbkN8+cJjpblfSk
+SKN+lfRG98r7kZ27D0hxFjMiZM1fIl5A4IqukHwCnQe/cooeS9koTEFY68b/3Juy
+8043mMDNrctgiggMPaBCxSI3oXYgk7i/PXvR49ckQNZCUBpiQjqVCn75+nUU7IW9
+cStLyFZSB8dgZ1WXx8tuKiqtvUeLJFGSCXL0kB0XWIdedVBUejMn2x15z0t+mR86
+kZEP2lX+hz5B/P3EimSdswCNzJr2J7dXZBIagvhuWR22NerE0oNoSyuPYieeS/xR
+viHQzNEyEx+tLiZeJDN6aUlgLEFCvsyn/LaRiKkzkZPfxu+y4bhZTG1JQTKJdHBG
+omrCnSu1g/FWdqQGyxGFrS8tkgRJmit2DpHk6XlY40Th5ls2wi7XFYxGKSRrs3ip
+r6YcKoVwEiqjHAMnu+ifieGupAECEG78SPZ5dFid2GAs69G+b0MuS5OXxdTUqJfC
+yV5D2qEw3PDNoJH/oaHXfTPztEeUOtzaDxKD5U5UsZrtgGRpx6Bd3AnkZl9uGPvk
+z7Adqj4GIlRPCUy+064QM0iOE3DPZPAm6d+6bHFhU54ojq9FxB9wiL3WAD193W9B
+b99w+tZL6nvNje3Fjj6to2EUeHMWrYoklGBhOSO/+3+bGZPPbycJ+wUx0SrZybsR
+D45m8+3vYE2nXApMLvfUzj3GFgvwTAaVa580fDSYneu4orYUphkooHt/Uh6WChNw
+w6p6Hxesy2gl8aWspHVVL39kxVQt5Mk2p7djOl5M7XNWekAVraaCKYA6U1kp5Llw
+QOJ4zCNeZ7Weh7yoxAwvkL1mnc6amNOckAh47sNUxTKPdIUvXo7pYXcaNQJ3NaJz
+pZlZALLoerU3qCm05epJn7mlEcfPoO3bKYbM8djQCc1eUKwtvkTBYgXqgiqbkd2K
+2egLu82bYfmgXiU/biixAZWYEmEQjkTF+dJFBpQ5709rSmAFtrCJIpNh+GHOgO+o
+7AAd2bcKyCH1k68N3odfenGFQsSZNIJW8tvwCzb0UHSHoktZQBFSU3+csgI+sgcd
+nK1/XNz36ON7fBDDPpVw+CC0WtpTShrropmLLYkwyPgzuE/9ZJZAk4jFtFT+uACG
+v7sSoNhm90idwAI3REfxO6tdaGION0gBAxEPeNzVUjgIzezjRkdtpDV3clSDbmcc
+JpNPYwHLhrpuwN7U0x5IFFzq6RD0ODeD8nnLYGA1hX3bGOFjUWvfRT0HX37G6boj
+xms8X+WDVlMuK1ReU9/UQr0kHRMP5w6sNsNB5kTRG0ptpRgWx6lGIx4GuoX0GNZk
+VtgW1FL3nterT9FqCCPKvnhtgC+cvSjLGMH3I+XHe+fptoPGKyjPzl/mDtpgLQp4
+YTrgpR/cvrqWgFUYtCWohgBNS2NibV5XXXL7C50WFZ+MA3jJ3FhMvfRiONhlU/DX
+QGONuizwchu+CBQhEZXh4bZ86kD9m/E2oMlxq1rr84j1gw7ASM1Pb1MQECWv+Duk
++MmDIjuvIWsi1iNcJBe0A4OsU2OtZ0RtlT0C2B07hXdwNATCxvPGgnlLL5Wn1wzM
+CLfzVdRP8O8AFrM+ghOrhOiw30TMZjV1iMUJF0apVUJqxhcCx6YNGSh1cCM0mQpB
+i78DD+SmYXGfQtA/pdW1/5nWubaa4XtANwcBhgPlkA+C7cR2KPc9nf7OWjYNt84B
+GIK9QvBsEr7dHzv3wsziMvS9j9wmLXMzxzhdDLMmfHZ5Fr2GFhG7k9F7b+W9mvlQ
+4pcYzGoKwbmP5ME7j8MRvjOkmULoby7tdAHOr+diCtibtnvr0/SPIpPSA8dYzltA
+8KCeQLs37NtW/7w240YNyAKCUeBcTpuPRJ2kM4L43g56lcD/z+WMjW/HION7nqGz
+iRFPIKPj7yD97Obl6CIFUGsaAzjElRrPkEx/ddZnrdFiR/qtRF2G4FUnR2cSouRp
+PDV4ooC6yw90ekBZomJ7GowM1JxploaDgN3oV1UhauIv+qdx+dIL2tOHz+Jt1VSP
+nxnpOMnNeIBO2gXdCz/ZgP9F0/XANncDPQKLo6NTNS/m0ejq9EuKFJ0HWzNldFVa
+g8omXswCtpZn36NnAF5+fMdBGgufax7yinUpPmRpvuRrAikcCLGk58T+/KD3Mt7w
+3ZHrA4k/o+1DDWrJlifVS1656b8dv1Zoa0wgq6UUzESW7mja+ilQfU0gr1BJVTZD
+0QJ8CZ3b9jRGOWb5BVs7ZWdCH1PqLCl81oraKyTgMQNOVliCHsI6t+eikA9szhrU
+Djn1pVW9l3ctRu0KTmsAbqFBPtFjnZc3aXASjq1ZfQ8D8VUt1yKd08vMgZ4kRtKn
+TFKZCOrrP1mNNHcXxBeaoSynyXFp1QXu6TjRLfbeUyfnJokvLgK9Z1HKiUDZqrxO
+Y/TvsUvz6urXpjvumv4bpz/g/jJevHuB6N/HvkOAqHT8JVfrSEbgqUaAT7k0VvXC
+W1QULh7VsvrN+0KVcsNAL0MYxk5/yl1/XCGLVIrdpzpLaHOdi2H36gdPkEraT8+z
+UiHxTa6LeKruBoUPFBgOxnxv9uXixELGmQ/sVRZwY4xoVSuf+TRx7dWUwIEBwHnF
+5VSQxwXb2NpeVuvLDjkBcqQb78pZfq7ILt9SRoyQMeN9SqlvfkZ203PdrUCoCpli
+LeJ7xaN4DpAfkuPDTBYEPdNOtbz7fyVetwkydpzMeZZouCF5LQiukPT+rZ71cfBM
+dK5uuib1iptDX50zwZCkUnwaVqIuwq/JGmPFxD0miSeJXJUjuuIV/AweZ0CFYYNI
+SnHd7Tx8gIJuH10tKE/xwhQe9BkZbu1I5k++17ZI161Iwu0v/8+qO8YJDHPnkm99
+6PnpvsluVWFIA2AgBUCS3zaN57VmlNqzuw5GaMuzwGNw83iHu5B21/BSJYGzTUzM
+pXSABKV78AoBkxYIbEdwI7+0cNHj7OKM6wCj3Jp0weXUbO7O6cxjgKJZOXXA8wrq
+VZEsJIf786RKvO79O0Dls3SOdaxBInOxRXhuK2Q4Azm2miLP7ishtkVhfiemu3N/
+z3BDmc8f43OWJz/nNVHAPU1HXnPXC38wRsbBP1E+jUhXmh8G28A5DY0KU+bGWmqw
+jR/+8c8E2lazXcnCgsPbx0D3eSqKtd922aXhisHmopZcCX58zZm63zya970I/9wL
++im4nKGZM+zCabcTJfM8qyxMj0FLT/zCFhozbBBqFHm4bj8nwYq1Nsm1IUGGPbub
+Ox0bhS0qvgoUqKiNZniyhxYahsFSmWYEDW/edj3ro7zEvYUqnFNRBS5/TKZ/J/UO
+H5SgcCwabZ982oA35Phmf9VWGMaJVY2qkMh7u9pvY20usKei61EDoUvimH3Brjk2
+3VD5BE1AJ9fmC6qZqQEpJ5N7WoKLPdsPsIz6E6zGEBVcaRqY2K72dwdugd7Mfy+U
+sgvKaRZBM0bL2IJGxGSS55H1NE0a5kAqfXWOj+68CgZ8+IeKum2FqSgFatWEewSX
+PkSULhXTFE/iqRzJRMBHMDQqkZtQ97WCWMqqthFhZT88rPhm9kMPR/urAbRMCp5V
+Q1mteD+WYiFYF/FNecJYuEhIwnLdfkJShmFsoI67Ois7jHnwiEp5seAgc4cMaFCJ
+r/PYBflSZNYiDLUhFsisua3k8h+xg5YFtLGLguR8qNd1GPkRaYJTH/GqtGAedP6j
+hwO7e7XXJnzRC8BuY5QUkDt/cw3ndqM6q3lZZ0tTOiw/ykdZchtaaWUuT9yT2ndi
+7UF+dugERbAuxKqvbBNWkLkOt7FqskUxWIs+ivJaiMlJFoef2wPCWMa/EGydmGvP
+OZKx/oxGLei+vaS7LeSC45SVtKOgcsc48blJY4NAjR2pmKwvRus+0fX97lYWF2KX
+BOm4QlcxrDr8nRCtlQLrAFxVmkhuVFEjQ081o3YCgMFvhMAxybPJYQPRCAJnpZ5Q
+CGnDZU60t0KJPq20oBR6MQ==

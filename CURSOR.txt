@@ -1,52 +1,14 @@
-create table test(id int,city char(20))
-
-insert into  test values(1,'wuhan'),(2,'hangzhou'),(3,'chengdu')
-
- 
-
-create procedure Test(
-
-out v_message varchar(500)
-
-)
-
-LANGUAGE SQL
-
-BEGIN
-
-DECLARE v_city char(20);
-
-DECLARE v_count int;
-
- 
-
-SET v_message = '';
-
-select count(*) into v_count from test;
-
-BEGIN
-
-DECLARE v_CUR CURSOR FOR SELECT city FROM test FOR READ ONLY;
-
-OPEN v_CUR;
-
-WHILE v_count > 0 DO
-
-FETCH v_CUR INTO v_city;
-
-set v_message = v_message ||v_city||' ';
-
-set v_count = v_count -1;
-
-end while;
-
-END;
-
- 
-
-END@
-
-call Test(?)
-
-drop procedure "Test";
-drop table test;
+U2FsdGVkX1/oig4bc4mct5gzhDh37ZbuMadVMLMaq7018CVJOiLuphvv3mvzwjfP
+arjC/239zMfBLXui54teIkEkOGYsIvG+RHBUVPS4PRIOSRc5RRRHO3p5vJZjJnRk
+29PNI7F4XSWA+yJzpxkGwxlZfl2b8jnhcC57+2LXlSiozcAmgZjl9tKNIKsINYhZ
+jKsnDiSm80tv2U83h3e8DsbJ+boPPhlW5feegFDmCoJrtSZQa8KMBi1L1kzvJpZT
+kk2RSMW3AlmWEOhwFtmKh6F88+L/qjZP1BeAiltXTRuiKKLu8892+eGMHQfKd/4P
+e+ZaoTM4rNagyiLqM+PuyjUIlFJvjHwaKdGNaqqd4mXPi+px/KxVyUIckohDfjD5
+AexkN1cLrnY49E1zoXMO+9Co7dFeMbhytyDlPXTt+mvx9UOsG0GsL5DlPRNi4phG
+7uI535F7bjBDs3HgpZPjUxYggsRI7oRcnWfzWK10GNgE7d9K+UC1WxdHqsPaLCe6
+hC2GddvmxZPo0spIMeLeO91NT7i5enrRost9ro6EJQIoq7um+n4BIaulPKV0MAVX
+7dRk52CGc1GMRwu7XXfnA4w0JN02m1b2v/J6MQ/d5SQJRXBEiMqWXa7W3rP/uzyf
+XJmqcLh3KRng+ZHDMPr2kfic38fG4hKL8BWNycAeBc7w54Quihvz+2ZLe/T0GLsi
+sa98Z6+FlXoq/uxpSqX1LKJjqpqd0iX72C0JmV94f8MgwsPawIsnFAjWnOvzqFta
+JI1L3djL601JoGe5xeNFK9qSpkFY7EorEZzbCQqvdfQXpxQFJWpbcXweAmpZNVBt
+Ps/6mCVE+qMmF9oaZurM3PPcGBxQhYQZ

@@ -1,24 +1,9 @@
-数据类型:
-smallint 
-integer 
-bigint 
-decimal(p,s),dec(p,s),numeric(p,s)
-real,double,double precision,float
-varchar(n),character varying(n),long varchar,clob(n[K|M|G])
-graphic(n),vargraphic(n),long vargraphic(n),dbclob(n[K|M|G])
-date,time,timestamp
-
-函数
-avg
-max
-min
-count
-count_big
-stddev
-sum
-variance
-
-restrict
-noaction
-cascade
-set null
+U2FsdGVkX19wn+6O9FRskfK8iGnJeI7arCR+Xj9GkaV6XjNk5ZwC7LRKEDrc027J
+VX8qUAeL/32zEqZZ9Ojaw4QXDoov/eY/PuMamV4ZsyJ1AeuWSdQpRL/9mpqAXDAf
+A4NOO6GdyyRDE3m8P6Y9R/gykXrZ2yHqJuGGal4agXcjeVU/+AcgMcYSB7q38gF/
+eX4sRBK9I+udypRHfjJumlo4QDKlneCM61sYPTjJHI0hiXUe9msTJCUKJFgMiqhw
+Puz4RJPPXg9wgWpp8rxaFCPCIJ/WRxIJ6GrO2I71e5PxCz8/+p0GOcLghdFxTI0A
+lwFywMkRKuckHPZEgCP1b9MK7RuBRNWNnO0SB6EM0dD4Ob2qFGIe5vqX3etZJisI
+s0fwXPRJlYVcGCJxjCtQHJSFf8zQgYAScsMTXg+ct7o/Q3fHY07xvgiVP89slxMc
+FJzpKvt4xxtaNkXyLP69vGLOa4hokRlI2tmCSoWEEf9JjW2tF1Mwirorrvm9C435
+pM6Ty92uVWs=

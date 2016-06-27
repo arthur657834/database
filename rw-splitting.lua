@@ -1,359 +1,230 @@
---[[ $%BEGINLICENSE%$
- Copyright (c) 2007, 2009, Oracle and/or its affiliates. All rights reserved.
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License as
- published by the Free Software Foundation; version 2 of the
- License.
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU General Public License for more details.
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- 02110-1301  USA
- $%ENDLICENSE%$ --]]
-
----
--- a flexible statement based load balancer with connection pooling
---
--- * build a connection pool of min_idle_connections for each backend and maintain
---   its size
--- * 
--- 
--- 
-
-local commands    = require("proxy.commands")
-local tokenizer   = require("proxy.tokenizer")
-local lb          = require("proxy.balance")
-local auto_config = require("proxy.auto-config")
-
---- config
---
--- connection pool
-if not proxy.global.config.rwsplit then
-	proxy.global.config.rwsplit = {
-		min_idle_connections = 1,
-		max_idle_connections = 8,
-
-		is_debug = false
-	}
-end
-
----
--- read/write splitting sends all non-transactional SELECTs to the slaves
---
--- is_in_transaction tracks the state of the transactions
-local is_in_transaction       = false
-
--- if this was a SELECT SQL_CALC_FOUND_ROWS ... stay on the same connections
-local is_in_select_calc_found_rows = false
-
---- 
--- get a connection to a backend
---
--- as long as we don't have enough connections in the pool, create new connections
---
-function connect_server() 
-	local is_debug = proxy.global.config.rwsplit.is_debug
-	-- make sure that we connect to each backend at least ones to 
-	-- keep the connections to the servers alive
-	--
-	-- on read_query we can switch the backends again to another backend
-
-	if is_debug then
-		print()
-		print("[connect_server] " .. proxy.connection.client.src.name)
-	end
-
-	local rw_ndx = 0
-
-	-- init all backends 
-	for i = 1, #proxy.global.backends do
-		local s        = proxy.global.backends[i]
-		local pool     = s.pool -- we don't have a username yet, try to find a connections which is idling
-		local cur_idle = pool.users[""].cur_idle_connections
-
-		pool.min_idle_connections = proxy.global.config.rwsplit.min_idle_connections
-		pool.max_idle_connections = proxy.global.config.rwsplit.max_idle_connections
-		
-		if is_debug then
-			print("  [".. i .."].connected_clients = " .. s.connected_clients)
-			print("  [".. i .."].pool.cur_idle     = " .. cur_idle)
-			print("  [".. i .."].pool.max_idle     = " .. pool.max_idle_connections)
-			print("  [".. i .."].pool.min_idle     = " .. pool.min_idle_connections)
-			print("  [".. i .."].type = " .. s.type)
-			print("  [".. i .."].state = " .. s.state)
-		end
-
-		-- prefer connections to the master 
-		if s.type == proxy.BACKEND_TYPE_RW and
-		   s.state ~= proxy.BACKEND_STATE_DOWN and
-		   cur_idle < pool.min_idle_connections then
-			proxy.connection.backend_ndx = i
-			break
-		elseif s.type == proxy.BACKEND_TYPE_RO and
-		       s.state ~= proxy.BACKEND_STATE_DOWN and
-		       cur_idle < pool.min_idle_connections then
-			proxy.connection.backend_ndx = i
-			break
-		elseif s.type == proxy.BACKEND_TYPE_RW and
-		       s.state ~= proxy.BACKEND_STATE_DOWN and
-		       rw_ndx == 0 then
-			rw_ndx = i
-		end
-	end
-
-	if proxy.connection.backend_ndx == 0 then
-		if is_debug then
-			print("  [" .. rw_ndx .. "] taking master as default")
-		end
-		proxy.connection.backend_ndx = rw_ndx
-	end
-
-	-- pick a random backend
-	--
-	-- we someone have to skip DOWN backends
-
-	-- ok, did we got a backend ?
-
-	if proxy.connection.server then 
-		if is_debug then
-			print("  using pooled connection from: " .. proxy.connection.backend_ndx)
-		end
-
-		-- stay with it
-		return proxy.PROXY_IGNORE_RESULT
-	end
-
-	if is_debug then
-		print("  [" .. proxy.connection.backend_ndx .. "] idle-conns below min-idle")
-	end
-
-	-- open a new connection 
-end
-
---- 
--- put the successfully authed connection into the connection pool
---
--- @param auth the context information for the auth
---
--- auth.packet is the packet
-function read_auth_result( auth )
-	if is_debug then
-		print("[read_auth_result] " .. proxy.connection.client.src.name)
-	end
-	if auth.packet:byte() == proxy.MYSQLD_PACKET_OK then
-		-- auth was fine, disconnect from the server
-		proxy.connection.backend_ndx = 0
-	elseif auth.packet:byte() == proxy.MYSQLD_PACKET_EOF then
-		-- we received either a 
-		-- 
-		-- * MYSQLD_PACKET_ERR and the auth failed or
-		-- * MYSQLD_PACKET_EOF which means a OLD PASSWORD (4.0) was sent
-		print("(read_auth_result) ... not ok yet");
-	elseif auth.packet:byte() == proxy.MYSQLD_PACKET_ERR then
-		-- auth failed
-	end
-end
-
-
---- 
--- read/write splitting
-function read_query( packet )
-	local is_debug = proxy.global.config.rwsplit.is_debug
-	local cmd      = commands.parse(packet)
-	local c        = proxy.connection.client
-
-	local r = auto_config.handle(cmd)
-	if r then return r end
-
-	local tokens
-	local norm_query
-
-	-- looks like we have to forward this statement to a backend
-	if is_debug then
-		print("[read_query] " .. proxy.connection.client.src.name)
-		print("  current backend   = " .. proxy.connection.backend_ndx)
-		print("  client default db = " .. c.default_db)
-		print("  client username   = " .. c.username)
-		if cmd.type == proxy.COM_QUERY then 
-			print("  query             = "        .. cmd.query)
-		end
-	end
-
-	if cmd.type == proxy.COM_QUIT then
-		-- don't send COM_QUIT to the backend. We manage the connection
-		-- in all aspects.
-		proxy.response = {
-			type = proxy.MYSQLD_PACKET_OK,
-		}
-	
-		if is_debug then
-			print("  (QUIT) current backend   = " .. proxy.connection.backend_ndx)
-		end
-
-		return proxy.PROXY_SEND_RESULT
-	end
-
-	proxy.queries:append(1, packet, { resultset_is_needed = true })
-
-	-- read/write splitting 
-	--
-	-- send all non-transactional SELECTs to a slave
-	if not is_in_transaction and
-	   cmd.type == proxy.COM_QUERY then
-		tokens     = tokens or assert(tokenizer.tokenize(cmd.query))
-
-		local stmt = tokenizer.first_stmt_token(tokens)
-
-		if stmt.token_name == "TK_SQL_SELECT" then
-			is_in_select_calc_found_rows = false
-			local is_insert_id = false
-
-			for i = 1, #tokens do
-				local token = tokens[i]
-				-- SQL_CALC_FOUND_ROWS + FOUND_ROWS() have to be executed 
-				-- on the same connection
-				-- print("token: " .. token.token_name)
-				-- print("  val: " .. token.text)
-				
-				if not is_in_select_calc_found_rows and token.token_name == "TK_SQL_SQL_CALC_FOUND_ROWS" then
-					is_in_select_calc_found_rows = true
-				elseif not is_insert_id and token.token_name == "TK_LITERAL" then
-					local utext = token.text:upper()
-
-					if utext == "LAST_INSERT_ID" or
-					   utext == "@@INSERT_ID" then
-						is_insert_id = true
-					end
-				end
-
-				-- we found the two special token, we can't find more
-				if is_insert_id and is_in_select_calc_found_rows then
-					break
-				end
-			end
-
-			-- if we ask for the last-insert-id we have to ask it on the original 
-			-- connection
-			if not is_insert_id then
-				local backend_ndx = lb.idle_ro()
-
-				if backend_ndx > 0 then
-					proxy.connection.backend_ndx = backend_ndx
-				end
-			else
-				print("   found a SELECT LAST_INSERT_ID(), staying on the same backend")
-			end
-		end
-	end
-
-	-- no backend selected yet, pick a master
-	if proxy.connection.backend_ndx == 0 then
-		-- we don't have a backend right now
-		-- 
-		-- let's pick a master as a good default
-		--
-		proxy.connection.backend_ndx = lb.idle_failsafe_rw()
-	end
-
-	-- by now we should have a backend
-	--
-	-- in case the master is down, we have to close the client connections
-	-- otherwise we can go on
-	if proxy.connection.backend_ndx == 0 then
-		return proxy.PROXY_SEND_QUERY
-	end
-
-	local s = proxy.connection.server
-
-	-- if client and server db don't match, adjust the server-side 
-	--
-	-- skip it if we send a INIT_DB anyway
-	if cmd.type ~= proxy.COM_INIT_DB and 
-	   c.default_db and c.default_db ~= s.default_db then
-		print("    server default db: " .. s.default_db)
-		print("    client default db: " .. c.default_db)
-		print("    syncronizing")
-		proxy.queries:prepend(2, string.char(proxy.COM_INIT_DB) .. c.default_db, { resultset_is_needed = true })
-	end
-
-	-- send to master
-	if is_debug then
-		if proxy.connection.backend_ndx > 0 then
-			local b = proxy.global.backends[proxy.connection.backend_ndx]
-			print("  sending to backend : " .. b.dst.name);
-			print("    is_slave         : " .. tostring(b.type == proxy.BACKEND_TYPE_RO));
-			print("    server default db: " .. s.default_db)
-			print("    server username  : " .. s.username)
-		end
-		print("    in_trans        : " .. tostring(is_in_transaction))
-		print("    in_calc_found   : " .. tostring(is_in_select_calc_found_rows))
-		print("    COM_QUERY       : " .. tostring(cmd.type == proxy.COM_QUERY))
-	end
-
-	return proxy.PROXY_SEND_QUERY
-end
-
----
--- as long as we are in a transaction keep the connection
--- otherwise release it so another client can use it
-function read_query_result( inj ) 
-	local is_debug = proxy.global.config.rwsplit.is_debug
-	local res      = assert(inj.resultset)
-  	local flags    = res.flags
-
-	if inj.id ~= 1 then
-		-- ignore the result of the USE <default_db>
-		-- the DB might not exist on the backend, what do do ?
-		--
-		if inj.id == 2 then
-			-- the injected INIT_DB failed as the slave doesn't have this DB
-			-- or doesn't have permissions to read from it
-			if res.query_status == proxy.MYSQLD_PACKET_ERR then
-				proxy.queries:reset()
-
-				proxy.response = {
-					type = proxy.MYSQLD_PACKET_ERR,
-					errmsg = "can't change DB ".. proxy.connection.client.default_db ..
-						" to on slave " .. proxy.global.backends[proxy.connection.backend_ndx].dst.name
-				}
-
-				return proxy.PROXY_SEND_RESULT
-			end
-		end
-		return proxy.PROXY_IGNORE_RESULT
-	end
-
-	is_in_transaction = flags.in_trans
-	local have_last_insert_id = (res.insert_id and (res.insert_id > 0))
-
-	if not is_in_transaction and 
-	   not is_in_select_calc_found_rows and
-	   not have_last_insert_id then
-		-- release the backend
-		proxy.connection.backend_ndx = 0
-	elseif is_debug then
-		print("(read_query_result) staying on the same backend")
-		print("    in_trans        : " .. tostring(is_in_transaction))
-		print("    in_calc_found   : " .. tostring(is_in_select_calc_found_rows))
-		print("    have_insert_id  : " .. tostring(have_last_insert_id))
-	end
-end
-
---- 
--- close the connections if we have enough connections in the pool
---
--- @return nil - close connection 
---         IGNORE_RESULT - store connection in the pool
-function disconnect_client()
-	local is_debug = proxy.global.config.rwsplit.is_debug
-	if is_debug then
-		print("[disconnect_client] " .. proxy.connection.client.src.name)
-	end
-
-	-- make sure we are disconnection from the connection
-	-- to move the connection into the pool
-	proxy.connection.backend_ndx = 0
-end
+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

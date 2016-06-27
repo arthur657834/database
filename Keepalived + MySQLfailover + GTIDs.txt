@@ -1,261 +1,271 @@
--- MySQL半同步复制
-　　开启半同步后，在master提交一个写事务之后，master会block这个事务，直到备用master确认已经接受到了该复制事件，这时master才向应用程序确认提交成功。否则超时中断半同步，直到重新满足条件开启。
-
-在master提交事务之后，而slave未来得及接收复制事件，这时候master crash的话，应用程序会切换到slave上，并重新发起事务，这正好是我们所需要的，满足高可用的初衷。但是这里存在一个缺陷，那就是在master恢复之后，原来的事务已经提交，这时候复制会出现问题。
-解决办法：在原来的master恢复之后数据重做(推荐)，或者跳过重复数据错误。
-
-
-rpm -ivh mysql-community-common-5.7.10-1.el6.x86_64.rpm
-rpm -ivh mysql-community-libs-5.7.10-1.el6.x86_64.rpm
-rpm -ivh mysql-community-client-5.7.10-1.el6.x86_64.rpm
-rpm -ivh mysql-community-devel-5.7.10-1.el6.x86_64.rpm 
-rpm -ivh mysql-community-server-5.7.10-1.el6.x86_64.rpm 
-
-problem1:
-
-[Warning] TIMESTAMP with implicit DEFAULT value is deprecated.
-Please use --explicit_defaults_for_timestamp server option
-(seedocumentation for more details).
-
-在MySQL 5.6.6之前，TIMESTAMP的默认行为：
-
-TIMESTAMP列如果没有明确声明NULL属性，默认为NOT NULL。（而其他数据类型，如果没有显示声明为NOT NULL，则允许NULL值。）设置TIMESTAMP的列值为NULL，会自动存储为当前timestamp。
-
-表中的第一个TIMESTAMP列，如果没有声明NULL属性、DEFAULT或者 ON UPDATE，会自动分配 DEFAULT CURRENT_TIMESTAMP和ON UPDATE CURRENT_TIMESTAMP 属性。
-
-表中第二个TIMESTAMP列，如果没有声明为NULL或者DEFAULT子句，默认自动分配’0000-00-00 00:00:00′。插入行时没有指明改列的值，该列默认分配’0000-00-00 00:00:00′，且没有警告。
-
-关闭警告，在my.cnf中加入
-[mysqld]
-explicit_defaults_for_timestamp=true
-
-作用:
-TIMESTAMP如果没有显示声明NOT NULL，是允许NULL值的，可以直接设置改列为NULL，而没有默认填充行为。
-TIMESTAMP不会默认分配DEFAULT CURRENT_TIMESTAMP 和 ON UPDATE CURRENT_TIMESTAMP属性。
-
-server-id=1
-gtid-mode=on                    -- 启动gtid模式
-enforce_gtid_consistency        -- 强制gtid一致性 5.6.9之前的版本为disable-gtid-unsafe-statement
-log-bin=/tmp/mysql_bin                          -- master和slave都必须启用binlog
-log-slave-updates                -- 必须使用
-	
-
-[client]
-default-character-set=utf8
- 
-port=3306
- 
-[mysql]
- 
-default-character-set=utf8
- 
-[mysqld]
-character_set_server=utf8
-# The TCP/IP Port the MySQL Server will listen on
-port=3306
-max_connections=200
-default-storage-engine=INNODB 
-
-rm -fr /var/lib/mysql/* 
-mysqld --initialize --datadir=/var/lib/mysql
-rm -fr /tmp/mysql_bin.*
-chown -R mysql:mysql /var/lib/mysql/
-
-mysqld_safe --user=mysql --skip-grant-tables --skip-networking & 
-mysql -u root mysql
-	UPDATE user SET authentication_string=PASSWORD('123456') where USER='root'; //存储密码的字段换了!!!!!!!!!
-	FLUSH PRIVILEGES;
-	quit
-
-/etc/init.d/mysqld stop
-nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
-mysql -uroot -p123456
-	alter user 'root'@'localhost' identified by '123456';
-	GRANT ALL PRIVILEGES ON *.* TO root@"%" IDENTIFIED BY "123456";
-	FLUSH PRIVILEGES;
-	quit
-/etc/init.d/mysqld stop
-nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
-
->/var/log/mysqld.log ;mysqld_safe --user=mysql --datadir=/var/lib/mysql;cat /var/log/mysqld.log
->/var/log/mysqld.log ;/etc/init.d/mysqld start;cat /var/log/mysqld.log
-
-在master与备用master上安装半同步
-mysql -uroot -p123456
-	install plugin rpl_semi_sync_master SONAME 'semisync_master.so';
-	install plugin rpl_semi_sync_slave SONAME 'semisync_slave.so';
-	quit
-	
-在master上启用半同步
-
-(1)在Master MySQL上创建一个用户‘repl’，并允许其他Slave服务器可以通过远程访问Master，通过该用户读取二进制日志，实现数据同步
-	create user repl;
-	GRANT REPLICATION SLAVE ON *.* TO 'repl'@'192.168.1.%' IDENTIFIED BY 'redhat';
-	flush privileges;
-	
-	//repl用户必须具有REPLICATION SLAVE权限，除此之外没有必要添加不必要的权限，密码为mysql。说明一下192.168.1.%，这个配置是指明repl用户所在服务器，这里%是通配符，表示192.168.0.0-192.168.0.255的Server都可以以repl用户登陆主服务器。当然你也可以指定固定Ip。
-
-	
-(2)mysql -uroot -p123456
-	set global rpl_semi_sync_master_enabled = 1;          -- 开启为master角色
-	set global rpl_semi_sync_master_timeout = 1000;     -- 配置
-
-(rpl_semi_sync_master_timeout=1000)表示主库在某次事务中，如果等待时间超过1000毫秒，那么则降级为普通模式，不再等待备库。如果主库再次探测到，备库恢复了，则会自动再次回到Semi-sync状态。建议把半同步跑在高速网络环境中
-
-配置slave:
-mysql -uroot -p123456
-	change master to master_host='10.1.51.150',master_port=3306,master_user='repl',master_password='redhat',master_auto_position=1; 
-	-- 表示基于GTIDs的主从 MySQL自动判断从哪开始同步 基于GTIDs的主从已经不需要手动指定编号了
-	start slave;                    
-	-- 启动slave;
-	
-在备用master上启用半同步：
-mysql -uroot -p123456
-	stop slave;
-	SET GLOBAL rpl_semi_sync_slave_enabled = 1;
-	start slave;
-
-修改 master与备用master 配置文件 	
-vi /etc/my.cnf
-添加一下内容
-rpl_semi_sync_master_enabled=1
-rpl_semi_sync_master_timeout=1000
-rpl_semi_sync_slave_enabled=1
-
-重启mysql
-	/etc/init.d/mysqld stop
-	nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
-
--- 查看半同步状态
-show status like '%semi_sync%';
-master上
-Rpl_semi_sync_master_clients               | 1                                 -- 有一个slave(备用master)开启半同步
-Rpl_semi_sync_master_status                | ON                             -- 已开启成功
- 
-备用master上
-Rpl_semi_sync_slave_status                 | ON                                -- 已开启成功
-
-
-安装配置MySQLfailover
-monitor:
-yum install -y mysql-utilities.noarch
--- 在所有mysql上给mysqlfailover监控机授权 -- 在master上操作即可 因为会自动同步
-mysql -uroot -p123456
-create user replm;
-grant create,insert,drop,select,super,replication slave,reload on *.* to 'replm'@'10.1.51.155' IDENTIFIED BY 'redhat';
-flush privileges;
-
-修改所有mysql配置
-vi /etc/my.cnf
-添加以下配置
-report_host=10.1.51.155                                                      -- 只读参数 指定报告主机为10.1.1.210(mysqlfailover monitor)
-master_info_repository=TABLE                                          -- 把master.info的信息 保存到数据库里面 mysqlfailover必须 原本默认保存到文件
-relay_log_info_repository=TABLE                                       -- 把relay_log信息保存到数据库里面 mysqlfailover必须 原本默认保存到文件
-
--- 把备用master和其他slave的mysql设置为read_only  防止后面使用到的keepalived误漂移或其他误操作导致数据写错地方 强大mha套件也是这样做的
-vim /etc/my.cnf
-添加以下配置
-read_only=1                                                            -- mysql只读
-
-重启mysql
-	/etc/init.d/mysqld stop
-	nohup mysqld_safe --user=mysql --datadir=/var/lib/mysql &
-	
-mysql -uroot -p123456
-	grant replication slave,reload,super on *.* to 'repl'@'10.1.51.150' identified by 'redhat';
-	grant replication slave,reload,super on *.* to 'repl'@'10.1.51.153' identified by 'redhat';
-	flush privileges;
-
-
-以下不会！！！！！！！！！！！！！！！！！！！！！！！！！！！！
--- 确认slave_master_info的表引擎为innodb
-mysql> show create table slave_master_info;
-ENGINE=InnoDB                                                                -- 若此表引擎不为innodb请修改表引擎
-
-编写脚本
-vim /usr/local/sbin/mysqlfailover_after.sh                        -- 编写failover后执行的脚本
-#!/bin/bash
-candidateIP=$3                                                                   -- 接收备用master的IP
-mysql -ureplm -preplm -h $candidateIP -e 'set global read_only=0'                -- 把候选者mysql的只读取消
-mysql -ureplm -preplm -h $candidateIP -e 'set global rpl_semi_sync_master_enabled=1'        -- 开启备用master的半同步状态为master
-
-mysqlfailover --master=replm:redhat@10.1.51.150 --slaves=replm:redhat@10.1.51.153,replm:redhat@10.1.51.154 --candidates=replm:redhat@10.1.51.153 --force --log=/var/log/mysqlfailover.log --exec-after=/usr/local/sbin/mysqlfailover_after.sh  --daemon=start //-- deamon=stop为关闭
-解释
---master=replm:replm@10.1.1.207                        -- 指定连接master的用户名(刚刚给mysqlfailover授权的用户)和密码和master的IP
---slaves=                                                                  -- 指定所有slave(包括备用master)的用户名和密码和IP地址 多个slave之间用逗号隔开
---candidates=                                                          -- 指定备用master是哪台
---force                                                                       -- 最好添加 如果mysqlfailover上次意外退出 不添加此参数 则不能启动mysqlfailover
---log=                                                                        -- 指定配置文件路径
---exec-before=                                                          -- 指定failover切换前执行的脚本路径 (刚刚编写的脚本路径)
---exec-after=                                                             -- 指定failover切换后执行的脚本路径 (刚刚编写的脚本路径)
---daemon=start                                                         -- 以服务的形式运行 start表示启动 stop表示停止 restart表示重启 detach表示占用前台但只输出到日志
-
-因为mysql5.7 密码字段已修改为 authentication_string 所以需要在user表中加入password字段
-alter table user add Password char(41) not null;
-
-配置keepalived
-vim /usr/local/keepalived/mysqld_script/mysqld_check.sh
-#!/bin/bash
-mysqladmin -predhat ping 2> /dev/null | grep alive >> /dev/null                            -- 判断mysqld是否存活
-exit $? 
-
-vim /usr/local/keepalived/etc/keepalived/keepalived.conf
-vrrp_script chk_mysqld {                                                                   -- 定义检查脚本
-        script "/usr/local/keepalived/mysqld_script/mysqld_check.sh"
-        interval 2
-        timeout 2
-        fall 3
-}
- 
-vrrp_instance mysqld {
-    state BACKUP                    -- 重点 master也设置为backup 不会抢VIP
-    interface eth0
-    virtual_router_id 52
-    priority 150 //备用上配置100    -- 权重 比备用master高
-    nopreempt                       -- 重点 设置为mysql恢复后不抢回VIP 如果mysql master启动后VIP又飘过去 即不安全又麻烦
-    advert_int 1
-    authentication {
-        auth_type PASS
-        auth_pass 1111
-    }
-    virtual_ipaddress {
-        10.1.1.211      -- 指定VIP mysql需要监听在此VIP上 注意/etc/my.cnf上的bind-address
-    }
-    track_script {                   -- 指定定义监控脚本
-        chk_mysqld
-    }
-}
-
-测试：
-vim /usr/local/sbin/mysql_insert.sh
-#!/bin/bash
-flag=1
-while ((1==1))                                                                    -- 定义死循环 无限插入sql
-do
-        RECV=1
-        flag=$((flag=$flag+1))
-        while (($RECV!=0))                                                     -- 这里为了模拟真实环境对操作语句是否成功的判断 并保证语句失败重新提交 根据返回值定义了循环
-        do
-                mysql -h10.1.51.156 -u'user_db01' -predhat -e "insert into db01.t1 values($flag,'a')" &>> /tmp/mysql_insert.log        -- 执行语句并把输出重定向给日志文件
-                RECV=$?
-                echo "insert into db01.t1 values($flag,'a')" >> /tmp/mysql_insert.log
-                echo $RECV >> /tmp/mysql_insert.log
-                sleep 0.01
-        done
-done
-
-create database db01;
-create table t1(id int,name char(3));
-grant all on db01.* to user_db01@'10.1.1.210' identified by 'redhat';
-
-show variables like 'read_only';
-show slave status\G;
-show status like '%semi_sync%';
-show VARIABLES  LIKE '%log_%';
-SHOW BINARY LOGS;
-mysqlbinlog  "D:\Program Files (x86)\MySQL\MySQL Server5.5\data\joe-bin.000002" >c:\binlog.txt
-删除所有的二进制日志文件
-RESET MASTER;
-只删除部分二进制日志文件使用PURGE MASTER LOGS;
-PURGE {MASTER | BINARY} LOGS TO 'log_name'
-PURGE {MASTER | BINARY} LOGS BEFORE 'date'
+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
+ie4sCrav1k8=

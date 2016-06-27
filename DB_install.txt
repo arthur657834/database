@@ -1,37 +1,23 @@
-1. 
-./db2_install
-
-2. 
-groupadd -g 2000 db2iadm1
-groupadd -g 2001 db2fadm1
-useradd -m -g db2iadm1 -d /home/db2inst1 db2inst1
-useradd -m -g db2fadm1 -d /home/db2fenc1 db2fenc1
-passwd db2inst1
-passwd db2fenc1
-
-3.
-
-[root@localhost instance]# pwd
-/opt/ibm/db2/V10.1/instance
-[root@localhost instance]# chmod -R 775 *
-[root@localhost instance]# ./db2icrt -p 50000 -u db2fenc1 db2inst1
-[root@localhost instance]# su - db2inst1
-[db2inst1@localhost ~]$ db2sampl
-Creating database "SAMPLE"...
-Connecting to database "SAMPLE"...
-Creating tables and data in schema "DB2INST1"...
-Creating tables with XML columns and XML data in schema "DB2INST1"...
-'db2sampl' processing complete.
-[db2inst1@localhost ~]$ db2start
-SQL1026N The database manager is already active.
-[db2inst1@localhost ~]$ db2 connect to sample
-Database Connection Information
-Database server = DB2/LINUX 10.1.2
-SQL authorization ID = DB2INST1
-Local database alias = SAMPLE
-[db2inst1@localhost ~]$ db2 "select * from staff"
-
-4.
-切换至db2inst1
-执行：db2start:开启
-执行：db2stop :停止
+U2FsdGVkX19OwUrmBOLh5NK8U/NK9eC4ootV3Npvm+Ddl09xjEDd5IiLQKdl2u4M
+OIoPNsSOk9fjOQOMs1ejUmYTbV0Jef2dDa4AbFAItrNIjpvbG088PzCJcXQrckta
+UTfZbebs38JGdgyqXNKmr3ruv8oyHN1uIg5ZG4BfLWIT2X95Urd3X2Xq787sWxU7
+8xcsMnzCO7jzUAE1TtkYDgvIGJdncZZlPwLpYazUiNwLvM72vGBl3UDd4htZiTOl
+hZZkUnrIoMVKS4WlFPVDZ8zygQE73Q5jXr+9zRo6E91kzg8+lbBZhNkdNJPi+FeL
+OKzbwbz1i9/i37DYW+TZ7p+0HtLXf1v7Zr/6kwwPK1v0eeXzRZfiKTjIXYu2Vc4O
+6y4kj8o1jBEsNL3PMjn/Pepnq5aFL/ZVp9G/EonVDUendx4l+nfL9LB1Ky0pyJHg
+tPHwOF2k4bJmmZF9kAlMmg56eCV4xs600oUdXS7VcdvjFOuPWMfNCA0EcU68Bcqz
+4xSk0yXaPhS8nvCB6PeDKR7do4JCuVDdiLyBB9NEDlPtOLvoPuHolGSSLAi3pw79
+CJoNAVjEZBs91dY0AoByt0IXmCoho6nVZA7xCpLXjsWg1LtNHA+Iwe3Y472qK9s7
+DtOFKEpU1ZDiUe+ldJyQx/yD65x//H/eCiggWP0xI+xp//fDbP7EbsQq39Uqfk0m
+H6IBFztvmaJW2XEKW6dQ3P7WmSkKuqQLqYWOXZZcW1+S1UKeTT5AiOdMwbr01ZBu
+VFlA+kN3OM/gcOsKlH+cZYu0oTFQOK5qcijVVsca6hR+XNM/WrqtW8D030P7fcNy
+tvGaXNq9O2UzMPs5z0KlauoOZ47s/2Nwu+a9AVXNWjOMpqMXshOgJYdS6dwdbBC4
+DnzFFZALv8j/hhlNZXFqdAUHlhMuJGpoX+nGhbffHqV37pjrFb6ecXaltSu8AOHT
++I1NnllUviEzi0ttT8iQ6QUqpP/m5KYWJcUc33k5WykK4xCtxNwCi84QP3P/646T
++0XI/2Hv+IN8AryTZVG4QFGyZFQmjRhtGSpga7bFNEVr+YPx+Nmex4klr/2zjrhn
+SWvyaIYM2XxE653c8s7ABj63qS0DPMqGwRqIy1CQajEdybKmBQh3L/86cyIGpxCC
+A6UOn++mpJaVZLrY4j6w3HmuuLhqM8Xex3qiiltZwC62xltxNV2gVjlGL9YTul4/
+L5zW1N5+WTp94B1Nk9iHigGB4wmMlQi0jFqivObmPCPd05pYqLKL/bnM7O2NXbsS
+HBZ0Z6kSq33QQLzITyz00gUrUoqegCLiee36q3bKqQzXq0zUsn7k7S6VAPqf4t8A
+6YaPCyCVyIf2HaZUSMuG4stBludrF3QNOvyOkkG1FvtCgHERlLqmH7Ph/coCnqZc
+2J/VdvpelUuxUi431vtz2ARmMDJuE5wK3ErmuzANC9zA3I/t9WloxFZo2SMReMgJ
