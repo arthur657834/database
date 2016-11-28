@@ -1,0 +1,62 @@
+能实现读写分离，分片存储
+
+wget https://github.com/MyCATApache/Mycat-download/blob/master/1.4-RELEASE/Mycat-server-1.4-release-20151019230038-linux.tar.gz
+tar -vxzf Mycat-server-1.4-release-20151019230038-linux.tar.gz 
+
+配置conf/server.xml,conf/schema.xml
+
+./mycat start
+netstat -na | grep 8066
+
+dataHost的balance属性设置为： 
+• 0，不开启读写分离机制 
+• 1，全部的readHost与stand by writeHost参与select语句的负载均衡，简单的说，当双主双从模式(M1->S1，M2->S2，并且M1与 M2互为主备)，正常情况下，M2,S1,S2都参与select语句的负载均衡。 
+• 2，所有的readHost与writeHost都参与select语句的负载均衡，也就是说，当系统的写操作压力不大的情况下，所有主机都可以承担负载均衡。 
+
+改天研究一下rule怎么使用的！！！！！
+mycat有自己的监控命令 例： show @@sql.slow;  show @@heartbeat;
+
+ex：
+server.xml:
+<user name="root">
+        <property name="password">123456</property>
+        <property name="schema">db1,db2,db3</property>
+</user>
+
+schema.xml:
+<?xml version="1.0"?>
+<!DOCTYPE mycat:schema SYSTEM "schema.dtd">
+<mycat:schema xmlns:mycat="http://org.opencloudb/">
+	<schema name="TESTDB" checkSQLschema="false" sqlMaxLimit="100">
+		<!-- auto sharding by id (long) -->
+		<table name="travelrecord" dataNode="dn1,dn2,dn3" rule="auto-sharding-long" />
+		<!-- global table is auto cloned to all defined data nodes ,so can join 
+with any table whose sharding node is in the same data node -->
+		<table name="company" primaryKey="ID" type="global" dataNode="dn1,dn2,dn3" />
+		<table name="goods" primaryKey="ID" type="global" dataNode="dn1,dn2" />
+		<!-- random sharding using mod sharind rule -->
+		<table name="hotnews" primaryKey="ID" dataNode="dn1,dn2,dn3"
+				rule="mod-long" />
+		<table name="employee" primaryKey="ID" dataNode="dn1,dn2"
+				rule="sharding-by-intfile" />
+		<table name="customer" primaryKey="ID" dataNode="dn1,dn2"
+				rule="sharding-by-intfile">
+			<childTable name="orders" primaryKey="ID" joinKey="customer_id"
+					parentKey="id"> //表连接查询时使用！！！！！！
+			</childTable>
+		</table>
+		<table name="mycat_sequence" dataNode="dn1" />
+	</schema>
+	<dataNode name="dn1" dataHost="localhost1" database="db1" />
+	<dataNode name="dn2" dataHost="localhost1" database="db2" />
+	<dataNode name="dn3" dataHost="localhost1" database="db3" />
+	<dataHost name="localhost1" maxCon="1000" minCon="10" balance="3"
+			writeType="0" dbType="mysql" dbDriver="native" switchType="1"  slaveThreshold="100">
+		<heartbeat>select user()</heartbeat>
+		<!-- can have multi write hosts -->
+		<writeHost host="hostM1" url="10.1.51.153:3306" user="root" password="123456">
+			<!-- can have multi read hosts -->
+			<readHost host="hostS1" url="10.1.51.154:3306" user="root" password="123456" weight="1" />
+		</writeHost>
+	</dataHost>
+</mycat:schema>

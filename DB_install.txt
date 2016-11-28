@@ -1,23 +1,37 @@
-U2FsdGVkX1+smFoeq+PavhTRvfUr/rzSXRZglmiFJ7DpPs9p5Gjq7DrHrFY53KSg
-5crFQ0DWPhWnLdMi+v4vRZbFcZobTvVCriGSYXg/DLsZPq1GkpPGlYT1x1QZTgjA
-H9FYQNriPi1XbNKuG+2OY3CBJyObE3nXH9KYJoGfYVReRaZB1jxkOyYJmF0RXzLz
-fDLNI17ybq9S1TN5V0siyrdPWV70/81KKNd8bQhSfxE5nlVPzPgxuxtSzg8ox0rm
-ALVtx289QM9sV+oXvuERfz1RWGCBGMq9/Fr9NoW4oWHzlFS50vpoRwfewUPV/qsm
-T9g+q2tAFwAXr+0PnG6zYGNBt+Lc2C///lt0wfjqEzuPmR28PLxQ92fEn3Kksfep
-7FXdHdgOSI/IZaPNWcx3zj2tPaW5NiOEfFt6e7JKGTT92RVl1Yb4dMbdMtYF5tfX
-RK+6VrGFlGUG5LhqCplkj3qx6C3o9s0iqMAlyTku7gTTrO1HA+oLWud3IgLzpW2w
-WNBeAPfVCAi2g+UgvexHD6JsCPwVqV8sPTHQ3+Xq4mB7Jq99mX/UrMsSsY1efRD9
-f5SXWzzUENSWTJijaapuf/bGX2mDufa89d84nsYtv6N6Oi9bhOgtF9bP4gxiCJEz
-Zmz7c6yDnwkbDcSVKSkMlNDCoOSGe/ZAppnO2HGpIBiNcvg01D3wNpxLQFXsYSoc
-QgXTY7D0h7mcUvwdFtmMDuvtrIEu52hwelRMOdTnJM2UGgOwO1hsn2cD7ezWfpPq
-eIeIRQateyOKK6azuLC8EK8wN6rPfpjfYodEUhT/tPscu2cCd9Nl9//329VVvCcH
-gaQPfH/xgCh5fe5Ax24wQo/pyugBL8qgsiAiU9WSy0qdrRFh0qEdBBT9llJntLMQ
-DNgI3mlKw66FB1Mr8dStoBHL3bQ+3OOnchWqcFouxDn37/LiMSGL3I1IjrdAOaea
-T8Bac87B4m/iemfGx8pP911qzBfzLViOdc4psIUBaXll1ZyG/LKjLXpJkV9bHxpj
-na3tOUpPgSMbmkjrlQ987Qypv9liCx2WF6+1pFfr0U6UNNGT/EEMlOxPktiGOzsr
-2OS0p/zFpYyf6949t+9E4n77XV28RGZPTRKC4Gmkz02i42FIFGmNF3yLfZTFOBiO
-rF1bvhh4kJP/DW1W08RP5tXhKRBA4/OWCNgOGqc4BJN04xk+f00fYEIKhWUCBXjG
-vd+FRqMt8ZTTsOrgTG1BcMNITdJpbG4xpvbfxhAW6r+PuL8PtW/KKqFPbyAqjr+o
-XPAwy5Bs6xHhoV3W7lazrjXDzbnOVx9yn9j1jVAlopTHE2P7nppJFT3cKK5vq/05
-EQWzgHvvSFv1rswizRGveTdNcpuLD2t1GmUAMdPMsGKMTy1Jv21bl8abFarV5d+2
-wIX04dTyNkbHlxfdiFBsdk/82uvDHDhB3owpdXKvk1vc7e5yHhGklw5SI845zrgr
+1. 
+./db2_install
+
+2. 
+groupadd -g 2000 db2iadm1
+groupadd -g 2001 db2fadm1
+useradd -m -g db2iadm1 -d /home/db2inst1 db2inst1
+useradd -m -g db2fadm1 -d /home/db2fenc1 db2fenc1
+passwd db2inst1
+passwd db2fenc1
+
+3.
+
+[root@localhost instance]# pwd
+/opt/ibm/db2/V10.1/instance
+[root@localhost instance]# chmod -R 775 *
+[root@localhost instance]# ./db2icrt -p 50000 -u db2fenc1 db2inst1
+[root@localhost instance]# su - db2inst1
+[db2inst1@localhost ~]$ db2sampl
+Creating database "SAMPLE"...
+Connecting to database "SAMPLE"...
+Creating tables and data in schema "DB2INST1"...
+Creating tables with XML columns and XML data in schema "DB2INST1"...
+'db2sampl' processing complete.
+[db2inst1@localhost ~]$ db2start
+SQL1026N The database manager is already active.
+[db2inst1@localhost ~]$ db2 connect to sample
+Database Connection Information
+Database server = DB2/LINUX 10.1.2
+SQL authorization ID = DB2INST1
+Local database alias = SAMPLE
+[db2inst1@localhost ~]$ db2 "select * from staff"
+
+4.
+切换至db2inst1
+执行：db2start:开启
+执行：db2stop :停止

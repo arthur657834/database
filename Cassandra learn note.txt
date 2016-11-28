@@ -1,30 +1,43 @@
-U2FsdGVkX19CpN6Ko38tlrH96iBbkQoBSn4eGBAxGF2Ju4CndrbNcR8AXppxa58/
-m/0Yg5C+0dhiD517BRXVAufeBLlg4BafHRoFeqkC2LawH5grGxZ2X4ZY5doeyCEf
-chfS/1V3vogJ+WVou1pdrfqeZ1+TwMwoIJ6Ju/G1UXqMYH8TnjQQ5hpExKRVZv7l
-B3lvg7BJj/aCoRlKSk/Y4mGzy6rPQakBdHjpyXutTPG02c2VP5sWwLZ2OkDU4b50
-tOunewZs7O777XWlCfSyTMT90vs2DesF7QgjqqAaN5GPjKQNrOb30NiSJj17Uc77
-bElYVOTnp/aSix1t+xl5EPoGgddG0wqgz89Xf93pD8A+KpTY1LwFT3+cwgLMbJuL
-YeJlLRPqw6OeYkwG036oUILvPGq9IuxwJLN6vEa+1ZP7y3Ki2C4x0G3t7jQA0U1r
-tW3fkBiMeD0tL5oAOUmI0xsnJC2JnAuTRLCVtUNoYi2lz4ykKjAWXud8brQ+3duc
-lhAlRM0zTtqI6StSL4AY+uziKggigl/xo8DEPMgjNP3L9EDu8BkWdyRMg+dXpvF4
-RfdpWUsmEM2wBXQUBZTnJdRcM8NTo280xWtpO5c6Zjlb2SEhz9mita5n7PTPbksp
-PdgKChdtp+XmvCkwreJRhxLhlCcBgjcnRAqYgBYaOqV2aBkWRtm76w6AOQ/VhYJV
-rx0C4DN3jvOVKRwWlJJfIKEyjQBLJ3v+vMwxaHKQbZB1IMwMAiGBphBJfTrfrbxD
-Q/FOz7/S21VXGkTPtNryJXQEVjQ3dRauK9z0h6X/aOGP2UvYaU9Y+QUC/JbXRM3p
-FTp8tUNV/S948IJaV0cGixRUzgTPyH+uB51fAgZHDH57/c7hxmx+PZQJzPpHePzT
-1u86GWexxRA3zPydwvwmxlRtx5Y7P8LlN1XfFkZpe92jhMnL8uagy1Tvk6R2lo7h
-3PzOdtpLudldae2DoJc4Hqva0FHvzE2fwF3RBGzVH4TbG7LoRpjfhNXLSdzdxlk1
-UT4ly4YNRPGdtLxQznUSciYqq1Zuph3U5qMjwJu6deh2HDIEqEgq8rzh7WdIRnLb
-fB3++hdUYv6eJtgCYFeyJb+MQ0NuNcQtxOocw4PfTz96MTQrSL5ro/mCfMxq9htl
-KjNAXM+4DSDfW+Oqz8Lmv1FAzx44R4Xo0Dwjm9laS589TBZGXXyT9PqJ3cV25LBT
-0qfrsOlwaxzH4lVHYZb4v0JlBrgQHWwERYNKFM1pU9qji5xIBR/Ww8Z4z6yN3U2K
-IskdXICYKDoFSp8MjaovxP96Vab/mn7lxbb+MdGC+JkwVzL/aCQssZv3yiC51v72
-moxIECp7R0l31QXZpy0fR3/tMwtJE329RMHSkqbtee4wYwRZ0vVbArSYGKDA1HoR
-hgPXVoyJRLCLDUy7Ui4ehHeaIodF+Z3QNJZa/w/4nEzsmNj8BD91LHYJ2eZIuoi6
-pPj/cRd6y15b6GtsrXxggrvv7aVNJdtYRBmyIVIQefdAfYpdRiLY/q207xEi4Rvl
-Ttjyaxut9iqEFVqVw3kCl9SOzAL8ZGtJR91WP7jf5e+4jgzNxumzMskAJwI4Yy32
-DRcmhrnMkTUULVToUUgkzhSquapRGp0Mi7DSHjP9n7PTv2dK5CkbUME0ZRnm5I7Y
-YT4r+SYhqOmZPlO5+BE8pnu2I77SUDk88JF5auNp6U25PRP6e1bLrCHF44zVcYdj
-w9msU3k3vs1NaoMhWDfcEK7X3tX231MVi1UMgrXQVV9Q7/HMTaYfNAs8Ysktes4k
-YvizF6soTzm2QXeHzzmql+bg1uAuBIrQ5oxXHt5GzHqkvdwXs4F6FQXr5y7+oyC5
-RCMnxCNrB/U=
+非root用户
+wget http://apache.fayea.com/cassandra/3.4/apache-cassandra-3.4-bin.tar.gz
+tar zxvf apache-cassandra-3.4-bin.tar.gz
+cd apache-cassandra-3.4/bin
+启动:./cassandra -f
+关闭:pgrep -f cassandra | xargs kill -9
+
+
+DESCRIBE keyspaces;
+
+CREATE KEYSPACE mykeyspace WITH REPLICATION = { 'class' : 'SimpleStrategy','replication_factor' : 2 };
+
+USE mykeyspace;
+
+CREATE TABLE users (user_id int PRIMARY KEY,fname text,lname text);
+
+DESCRIBE TABLES;
+
+INSERT INTO users (user_id,  fname, lname) VALUES (1745, 'john', 'smith');
+INSERT INTO users (user_id,  fname, lname) VALUES (1744, 'john', 'doe');
+INSERT INTO users (user_id,  fname, lname) VALUES (1746, 'john', 'smith');
+
+SELECT * FROM users;
+
+CREATE INDEX ON users (lname);
+SELECT * FROM users WHERE lname = 'smith'; // 没有索引不能使用where
+
+DROP TABLE users;
+
+配置远程访问：
+vi conf/ cassandra.yaml
+listen_address: 192.168.1.15（本地的静态IP地址，改为IP的目的是可以远程连接）
+rpc_address: 192.168.1.15
+
+配置用户：
+./cqlsh -u cassandra -p cassandra 192.168.1.15 //默认用户
+
+CREATE USER myusername WITH PASSWORD 'mypassword' SUPERUSER ;
+drop user cassandra;//最好删除默认用户
+注意，如果是集群模式，只需要在一台机器上配置就可以了，会自动同步过去
+
+修改权限：
+authorizer: CassandraAuthorizer

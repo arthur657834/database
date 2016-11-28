@@ -1,9 +1,24 @@
-U2FsdGVkX197sCauSpr+6LqicEIySwETaYkPOfco1JsC78ww5v39+rZDFDiwJLHw
-grdnRFJqUXtifMhGSVCr3o18MJi8i7XiPuUABzc/GXj0whcg+vCa/nJ6eRHu3n2A
-oqxnb8pwNAl+SWjrM09PPO9bIRzpbWYMsrkei541b0df8mcx+vNWT07+vQVDiX38
-E7tL0DFXtt1v3MEgTOk3aJtZ14Q9G0RSJrnCTw321ouOkn2GbrLWzsmXjA/06R1+
-zezbYoTKyLdsl9LSXsUVnEZnaabWCp0TUjxK5UZP553+Jgh+OHiVF6mqJQ0wbODS
-zxktZZnt2TqRecRF7elozACHHNtd1lD7kTGOWeuxY4j3XnAtWoDZ2KLiPlMISSnA
-9lK6OWPH27Aj5OIIzarYGEWf5+P7cTUPDDEGP94q5+dtCUU7ZUejoiazpDshj+Kq
-HJA3pB2qg6IzbtO77xTmN5+rQtV/h315TjAGLqzH8Lp816yKWBWwc5YBLP+WEQYK
-imi7dDxIwF8=
+数据类型:
+smallint 
+integer 
+bigint 
+decimal(p,s),dec(p,s),numeric(p,s)
+real,double,double precision,float
+varchar(n),character varying(n),long varchar,clob(n[K|M|G])
+graphic(n),vargraphic(n),long vargraphic(n),dbclob(n[K|M|G])
+date,time,timestamp
+
+函数
+avg
+max
+min
+count
+count_big
+stddev
+sum
+variance
+
+restrict
+noaction
+cascade
+set null
