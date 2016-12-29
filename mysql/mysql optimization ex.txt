@@ -1,0 +1,58 @@
+
+
+CREATE TABLE t(
+    id INT unsigned NOT NULL AUTO_INCREMENT,
+    cid INT unsigned NOT NULL DEFAULT 0,
+    c1 VARCHAR(50) NOT NULL DEFAULT '',
+    c2 VARCHAR(50) NOT NULL DEFAULT '',
+    c3 VARCHAR(50) NOT NULL DEFAULT '',
+    c4 VARCHAR(50) NOT NULL DEFAULT '',
+    c5 VARCHAR(50) NOT NULL DEFAULT '',
+    c6 VARCHAR(50) NOT NULL DEFAULT '',
+    PRIMARY KEY(id),
+    INDEX idx$cid(cid)
+);
+
+
+INSERT INTO t VALUES(
+    NULL,
+    FLOOR(RAND() * 1000000),
+    REPEAT('a', 50),
+    REPEAT('a', 50),
+    REPEAT('a', 50),
+    REPEAT('a', 50),
+    REPEAT('a', 50),
+    REPEAT('a', 50)
+);
+ 
+-- 重复执行
+INSERT INTO t
+SELECT NULL,
+    FLOOR(RAND() * 1000000),
+    c1,
+    c2,
+    c3,
+    c4,
+    c5,
+    c6
+FROM t;
+
+#耗时0.15
+SELECT * FROM t WHERE cid IN(955555, 955556, 955557, 955558, 955559);
+#耗时4.34
+SELECT * FROM t WHERE cid IN(1, 5000, 50000, 500000, 955559);
+#耗时0.01
+SELECT *
+FROM (
+    SELECT 1 AS cid UNION ALL
+    SELECT 5000 UNION ALL
+    SELECT 50000 UNION ALL
+    SELECT 500000 UNION ALL
+    SELECT 955559
+) AS tmp, t 
+WHERE tmp.cid = t.cid;
+
+或者不用UNION
+SELECT row_to_col(1, 5000, 50000, 500000, 955559);
+
+
