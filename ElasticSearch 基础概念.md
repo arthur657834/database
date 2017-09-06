@@ -1,3 +1,12 @@
+
+```
+插件支持列表
+https://www.elastic.co/guide/en/elasticsearch/reference/0.90/modules-plugins.html#analysis-plugins
+
+bin/plugin install mobz/elasticsearch-head
+
+bin/plugin install delete-by-query
+
 1. 问题：ES的数据分布是什么样的？
 答：数据分布是哈希分布，默认是对ID进行Hash取模，均衡分布在各个分片上。ID是UUID，Hash算法是MurMurHash3。
  
@@ -28,3 +37,4 @@
  
 8.问题：ES支持多表Join吗？
 答：不支持，可以在建模阶段，使用父子表或者去规范化（Denormalization）设计。
+```
