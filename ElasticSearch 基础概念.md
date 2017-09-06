@@ -7,6 +7,8 @@ bin/plugin install mobz/elasticsearch-head
 
 bin/plugin install delete-by-query
 
+ik插件可以直接下载编译之后的包，放入lib即可，注意版本
+
 1. 问题：ES的数据分布是什么样的？
 答：数据分布是哈希分布，默认是对ID进行Hash取模，均衡分布在各个分片上。ID是UUID，Hash算法是MurMurHash3。
  
