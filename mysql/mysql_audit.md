@@ -45,4 +45,20 @@ server_audit=FORCE_PLUS_PERMANENT
 配置解析：
 https://mariadb.com/kb/en/mariadb/server_audit-system-variables/
 https://mariadb.com/kb/en/library/mariadb-audit-plugin-log-settings/
+
+详细请参考：https://mariadb.com/kb/en/mariadb/server_audit-system-variables/
+server_audit_output_type：指定日志输出类型，可为SYSLOG或FILE
+server_audit_logging：启动或关闭审计
+server_audit_events：指定记录事件的类型，可以用逗号分隔的多个值(connect,query,table)，如果开启了查询缓存(query cache)，查询直接从查询缓存返回数据，将没有table记录
+server_audit_file_path：如server_audit_output_type为FILE，使用该变量设置存储日志的文件，可以指定目录，默认存放在数据目录的server_audit.log文件中
+server_audit_file_rotate_size：限制日志文件的大小
+server_audit_file_rotations：指定日志文件的数量，如果为0日志将从不轮转
+server_audit_file_rotate_now：强制日志文件轮转
+server_audit_incl_users：指定哪些用户的活动将记录，connect将不受此变量影响，该变量比server_audit_excl_users优先级高
+server_audit_syslog_facility：默认为LOG_USER，指定facility
+server_audit_syslog_ident：设置ident，作为每个syslog记录的一部分
+server_audit_syslog_info：指定的info字符串将添加到syslog记录
+server_audit_syslog_priority：定义记录日志的syslogd priority
+server_audit_excl_users：该列表的用户行为将不记录，connect将不受该设置影响
+server_audit_mode：标识版本，用于开发测试
 ```
